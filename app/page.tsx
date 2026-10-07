@@ -1,69 +1,163 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { FormEvent, useMemo, useState } from "react";
+import { MealCard } from "./meal-card";
+import { useMeals } from "./meals-context";
+import {
+  DIFFICULTY_RANK,
+  type Difficulty,
+  type Meal,
+} from "@/lib/meals";
+
+type Filters = {
+  maxCalories: string;
+  maxCost: string;
+  maxCookTime: string;
+  difficulty: "any" | Difficulty;
+};
+
+const emptyFilters: Filters = {
+  maxCalories: "",
+  maxCost: "",
+  maxCookTime: "",
+  difficulty: "any",
+};
+
+function matches(meal: Meal, filters: Filters) {
+  const maxCalories = Number(filters.maxCalories);
+  const maxCost = Number(filters.maxCost);
+  const maxCookTime = Number(filters.maxCookTime);
+
+  if (filters.maxCalories && meal.calories > maxCalories) {
+    return false;
+  }
+  if (filters.maxCost && meal.cost > maxCost) {
+    return false;
+  }
+  if (filters.maxCookTime && meal.cookTime > maxCookTime) {
+    return false;
+  }
+  if (
+    filters.difficulty !== "any" &&
+    DIFFICULTY_RANK[meal.difficulty] > DIFFICULTY_RANK[filters.difficulty]
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export default function HomePage() {
+  const { meals } = useMeals();
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [pick, setPick] = useState<Meal | null>(null);
+
+  const results = useMemo(
+    () => meals.filter((meal) => matches(meal, filters)),
+    [meals, filters],
+  );
+
+  function recommend(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (results.length === 0) {
+      setPick(null);
+      return;
+    }
+    const index = Math.floor(Math.random() * results.length);
+    setPick(results[index]);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main>
+      <section className="panel">
+        <h2>Recommend a meal</h2>
+        <form onSubmit={recommend}>
+          <div className="filters">
+            <label>
+              Max calories
+              <input
+                type="number"
+                min="0"
+                value={filters.maxCalories}
+                onChange={(event) =>
+                  setFilters({ ...filters, maxCalories: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Max cost ($)
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={filters.maxCost}
+                onChange={(event) =>
+                  setFilters({ ...filters, maxCost: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Max cook time (min)
+              <input
+                type="number"
+                min="0"
+                value={filters.maxCookTime}
+                onChange={(event) =>
+                  setFilters({ ...filters, maxCookTime: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Max difficulty
+              <select
+                value={filters.difficulty}
+                onChange={(event) =>
+                  setFilters({
+                    ...filters,
+                    difficulty: event.target.value as Filters["difficulty"],
+                  })
+                }
+              >
+                <option value="any">Any</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </label>
+          </div>
+          <div className="actions">
+            <button type="submit">Recommend one</button>
+            <button
+              type="reset"
+              onClick={() => {
+                setFilters(emptyFilters);
+                setPick(null);
+              }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+              Clear
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {pick ? (
+        <section className="panel">
+          <h2>Try this</h2>
+          <MealCard meal={pick} />
+        </section>
+      ) : null}
+
+      <section>
+        <h2>{results.length} matching meals</h2>
+        {results.length === 0 ? (
+          <p className="empty">No meals match those limits.</p>
+        ) : (
+          <div className="meal-list">
+            {results.map((meal) => (
+              <MealCard key={meal.id} meal={meal} />
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
