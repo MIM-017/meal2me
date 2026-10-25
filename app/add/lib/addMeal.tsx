@@ -1,117 +1,114 @@
 'use server'
 
-import { getRequestDb,
+import {
+    getRequestDb,
     createRecipe,
     createUser,
-    User,
     getUserByUsername,
-    NotFoundError} from "@/lib/db";
+    NotFoundError,
+    DbError,
+    DIFFICULTIES,
+    type User,
+} from "@/lib/db";
+import { redirect } from "next/navigation";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
 
-import { DIFFICULTIES } from "@/lib/db";
+export type AddMealState = { error: string } | null;
 
-// export async function addMeal(formData: FormData, userId) {
-//     const db = await getRequestDb();
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
-//     let recipe = {
-//         name: formData.get("name")?.toString() ?? "test meal",
-//         cookTime: 10, // minutes
-//         difficulty: "easy",
-//         cost: 10, // dollars, whole recipe
-//         macros: null,
-//         ingredients: ["magic", "tears"],
-//         notes: "we are doomed"
-//     };
+function imageExtension(b: Buffer): "jpg" | "png" | "webp" | null {
+    if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+    if (b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "png";
+    if (b.subarray(0, 4).toString() === "RIFF" && b.subarray(8, 12).toString() === "WEBP") return "webp";
+    return null;
+}
 
-//     createRecipe(db, user.id, recipe);
-// }
+/** Saves an uploaded photo. Returns its public path, null if none chosen, or { error }. */
+async function saveImage(file: FormDataEntryValue | null): Promise<string | null | { error: string }> {
+    if (!(file instanceof File) || file.size === 0) return null;
+    if (file.size > MAX_IMAGE_BYTES) return { error: "Image must be 5 MB or smaller" };
 
-export async function addMealSystem(formData: FormData) {
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const ext = imageExtension(bytes);
+    if (!ext) return { error: "Image must be a JPG, PNG, or WebP file" };
+
+    const dir = path.join(process.cwd(), "public", "images", "uploads");
+    await mkdir(dir, { recursive: true });
+    const filename = `${randomUUID()}.${ext}`; // never use the uploader's filename
+    await writeFile(path.join(dir, filename), bytes);
+    return `/images/uploads/${filename}`;
+}
+
+/** A number field: empty or non-numeric is an error, but 0 is allowed. */
+function numberField(formData: FormData, key: string, label: string): number | { error: string } {
+    const raw = formData.get(key)?.toString().trim() ?? "";
+    const n = Number(raw);
+    if (raw === "" || Number.isNaN(n) || n < 0) return { error: `${label} must be a number, 0 or higher` };
+    return n;
+}
+
+export async function addMealSystem(
+    _prev: AddMealState,
+    formData: FormData,
+): Promise<AddMealState> {
     const db = await getRequestDb();
 
     let user: User;
     try {
         user = getUserByUsername(db, "system");
-    }
-    catch (error) {
+    } catch (error) {
         if (error instanceof NotFoundError) {
             user = createUser(db, "system");
-        }
-        else {
+        } else {
             throw error;
         }
     }
-    
-    const name = formData.get("name")?.toString();
-    const cookTime = Number(formData.get("cookTime")?.toString());
+
+    const name = formData.get("name")?.toString().trim();
+    if (!name) return { error: "Meal name not specified" };
+
     const difficulty = formData.get("difficulty")?.toString();
-    const cost = Number(formData.get("cost")?.toString());
-    const proteins = Number(formData.get("proteins")?.toString());
-    const calories = Number(formData.get("calories")?.toString());
-    const carbs = Number(formData.get("carbs")?.toString());
-    const imageUrl = formData.get("imageUrl")?.toString() || null;
-    // const ingredients = formData.get("ingredients");  // Inoperable yet
-    // const notes = formData.get("notes")?.toString();  // Inoperable yet
-
-    if (!name) {
-        throw new Error("Meal name not specified");
-    }
-    else if (typeof name !== "string") {
-        throw new Error("Incorrect meal name value");
+    if (!difficulty || !(DIFFICULTIES as readonly string[]).includes(difficulty)) {
+        return { error: "Incorrect meal difficulty value" };
     }
 
-    if (!cookTime) {
-        throw new Error("Meal cook time not specified");
-    }
-    else if (Number.isNaN(cookTime) || cookTime < 0) {
-        throw new Error("Incorrect meal cook time value");
-    }
-
-    if (!difficulty) {
-        throw new Error("Meal difficulty not specified");
-    }
-    else if (typeof difficulty !== "string" || !(DIFFICULTIES as readonly string[]).includes(difficulty)) {
-        throw new Error("Incorrect meal difficulty value");
+    const cookTime = numberField(formData, "cookTime", "Cook time");
+    const cost = numberField(formData, "cost", "Cost");
+    const proteins = numberField(formData, "proteins", "Proteins");
+    const calories = numberField(formData, "calories", "Calories");
+    const carbs = numberField(formData, "carbs", "Carbs");
+    for (const v of [cookTime, cost, proteins, calories, carbs]) {
+        if (typeof v === "object") return v;
     }
 
-    if (!cost) {
-        throw new Error("Meal cost not specified");
-    }
-    else if (Number.isNaN(cost) || cost < 0) {
-        throw new Error("Incorrect meal cost value");
-    }
-
-    if (!proteins) {
-        throw new Error("Meal proteins not specified");
-    }
-    else if (Number.isNaN(proteins) || proteins < 0) {
-        throw new Error("Incorrect meal proteins value");
-    }
-
-    if (!calories) {
-        throw new Error("Meal calories not specified");
-    }
-    else if (Number.isNaN(calories) || calories < 0) {
-        throw new Error("Incorrect meal calories value");
-    }
-
-    if (!carbs) {
-        throw new Error("Meal carbs not specified");
-    }
-    else if (Number.isNaN(carbs) || carbs < 0) {
-        throw new Error("Incorrect meal carbs value");
-    }
-
+    const image = await saveImage(formData.get("image"));
+    if (image !== null && typeof image === "object") return image;
+    const imageUrl = image;
 
     const recipe = {
-        name: name,
-        cookTime: cookTime,
-        difficulty: difficulty,
-        cost: cost,
-        macros: {protein: proteins, carbs: carbs, calories: calories},
+        name,
+        cookTime,
+        difficulty,
+        cost,
+        macros: { protein: proteins, carbs, calories },
         ingredients: ["Inoperable"],
         notes: null,
-        imageUrl: imageUrl,   
+        imageUrl,
     };
 
-    console.log(createRecipe(db, user.id, recipe));
+    try {
+        createRecipe(db, user.id, recipe);
+    } catch (error) {
+        // Don't leave an orphan photo behind if the save failed.
+        if (imageUrl) {
+            await unlink(path.join(process.cwd(), "public", imageUrl)).catch(() => {});
+        }
+        if (error instanceof DbError) return { error: error.message };
+        throw error;
+    }
+
+    redirect("/meals"); // must stay outside the try/catch
 }

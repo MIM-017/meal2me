@@ -157,3 +157,28 @@ button.secondary {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+input[type="file"] {
+  color: transparent; 
+}
+
+input[type="file"]::file-selector-button {
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+
+.file-button {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid #767676;
+  border-radius: 4px;
+  background: #efefef;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.file-button:hover {
+  background: #e0e0e0;
+}
