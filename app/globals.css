@@ -148,6 +148,75 @@ button.secondary {
   color: var(--muted);
 }
 
+
+/* ---- Home page search ---- */
+
+.home-title {
+  margin: 28px 0 16px;
+  text-align: center;
+  font-size: 3.25rem;
+  font-weight: normal;
+  color: var(--text-header);
+}
+
+/* Search box with a line on each side:  ——— ( Search... ) ——— */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.search::before,
+.search::after {
+  content: "";
+  flex: 0 1 150px;
+  border-top: 2px solid var(--text-header);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 24px;
+  border: 2px solid var(--text-header);
+  border-radius: 999px;
+  font-size: 1.1rem;
+}
+
+.search input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.home-hint {
+  margin: 20px 0 24px;
+  text-align: center;
+  font-size: 1.25rem;
+  color: var(--text-header);
+}
+
+.search-results {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 1.1rem;
+}
+
+.search-results li {
+  padding: 4px 0;
+}
+
+/* Hidden on screen but still read by screen readers. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 640px) {
   .site-header {
     flex-direction: column;
@@ -155,5 +224,18 @@ button.secondary {
 
   .meal-card dl {
     grid-template-columns: 1fr 1fr;
+  }
+  
+  .home-title {
+    font-size: 2rem;
+  }
+
+  .search {
+    gap: 12px;
+  }
+
+  .search::before,
+  .search::after {
+    flex-basis: 24px;
   }
 }
