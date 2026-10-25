@@ -5,9 +5,7 @@ import { getRequestDb,
     createUser,
     User,
     getUserByUsername,
-    NotFoundError, 
-    RecipeInput,
-    Difficulty} from "@/lib/db";
+    NotFoundError} from "@/lib/db";
 
 import { DIFFICULTIES } from "@/lib/db";
 
@@ -46,10 +44,11 @@ export async function addMealSystem(formData: FormData) {
     const name = formData.get("name")?.toString();
     const cookTime = Number(formData.get("cookTime")?.toString());
     const difficulty = formData.get("difficulty")?.toString();
-    const cost = parseInt(formData.get("cost")?.toString() ?? "NaN");
+    const cost = Number(formData.get("cost")?.toString());
     const proteins = Number(formData.get("proteins")?.toString());
     const calories = Number(formData.get("calories")?.toString());
     const carbs = Number(formData.get("carbs")?.toString());
+    const imageUrl = formData.get("imageUrl")?.toString() || null;
     // const ingredients = formData.get("ingredients");  // Inoperable yet
     // const notes = formData.get("notes")?.toString();  // Inoperable yet
 
@@ -103,14 +102,15 @@ export async function addMealSystem(formData: FormData) {
     }
 
 
-    let recipe: RecipeInput = {
+    const recipe = {
         name: name,
         cookTime: cookTime,
-        difficulty: difficulty as Difficulty,
+        difficulty: difficulty,
         cost: cost,
         macros: {protein: proteins, carbs: carbs, calories: calories},
         ingredients: ["Inoperable"],
-        notes: null
+        notes: null,
+        imageUrl: imageUrl,   
     };
 
     console.log(createRecipe(db, user.id, recipe));

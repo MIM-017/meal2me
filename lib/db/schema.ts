@@ -128,6 +128,13 @@ export const MIGRATIONS: readonly Migration[] = [
       END;
     `,
   },
+  {
+    version: 2,
+    sql: `
+      ALTER TABLE recipes ADD COLUMN image_url TEXT
+        CHECK (image_url IS NULL OR length(image_url) BETWEEN 1 AND 500);
+    `,
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

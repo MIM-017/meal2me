@@ -45,6 +45,7 @@ export interface RecipeInput {
   costCents: number; // stored in cents; the API takes and returns dollars
   notes: string | null;
   macros: Macros | null;
+  imageUrl: string | null;
 }
 
 export interface SearchOptions {
@@ -133,7 +134,7 @@ function rejectUnknownKeys(
 // Recipes
 // ---------------------------------------------------------------------------
 
-const RECIPE_KEYS = ["name", "ingredients", "cookTime", "difficulty", "cost", "notes", "macros"] as const;
+const RECIPE_KEYS = ["name", "ingredients", "cookTime", "difficulty", "cost", "notes", "macros", "imageUrl"] as const;
 const MACRO_KEYS = ["calories", "protein", "carbs"] as const;
 
 function parseIngredients(value: unknown, issues: Issue[]): string[] | undefined {
@@ -242,6 +243,20 @@ function parseMacros(value: unknown, issues: Issue[]): Macros | null | undefined
   return macros as Macros;
 }
 
+function parseImageUrl(value: unknown, issues: Issue[]): string | null | undefined {
+  if (value === undefined || value === null || value === "") return null;
+  if (
+    typeof value !== "string" ||
+    value.length > 500 ||
+    !/^\/images\/[A-Za-z0-9_\-./]+$/.test(value) ||
+    value.includes("..")
+  ) {
+    issues.push({ field: "imageUrl", message: "must be a path like /images/oatmeal.jpg" });
+    return undefined;
+  }
+  return value;
+}
+
 /** Validate a recipe body. Throws ValidationError listing every problem. */
 export function parseRecipeInput(data: unknown): RecipeInput {
   if (!isPlainObject(data)) {
@@ -257,6 +272,7 @@ export function parseRecipeInput(data: unknown): RecipeInput {
     costCents: dollarsToCents(data.cost, "cost", issues),
     notes: parseNotes(data.notes, issues),
     macros: parseMacros(data.macros, issues),
+    imageUrl: parseImageUrl(data.imageUrl, issues), 
   };
   if (issues.length > 0) throw new ValidationError(issues);
   return result as RecipeInput;
