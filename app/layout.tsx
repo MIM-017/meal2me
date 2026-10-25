@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Meal2Me",
@@ -12,15 +13,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en">
       <body>
           <div className="shell">
-            <header className="site-header">
-              <div>
-                <h1>Meal2Me</h1>
-                <p>Find a meal by calories, cost, time, and difficulty.</p>
-              </div>
-              <nav>
-                <Link href="/">Recommend</Link>
-                <Link href="/meals">Directory</Link>
+            <header>
+              <nav className="site-navigation">
+                <Image src="/logo.png" alt="Meal2Me" width={60} height={60}/>
                 <Link href="/add">Add meal</Link>
+                <Link href="/" className="site-logo">Meal2Me</Link>
+                <Link href="/">Filters</Link>
+                <Link href="/meals">All Recipes</Link>
               </nav>
             </header>
             {children}
