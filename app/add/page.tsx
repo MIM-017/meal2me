@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Difficulty } from "@/lib/db";
+import type { Difficulty } from "@/lib/db";
 import { addMealSystem } from "./lib/addMeal";
 
 export default function AddMealPage() {
@@ -61,21 +61,11 @@ export default function AddMealPage() {
           </label>
           <label>
             Proteins
-            <input
-              required
-              name="proteins"
-              type="number"
-              min="0"
-            />
+            <input required name="proteins" type="number" min="0" />
           </label>
           <label>
             Carbs
-            <input
-              required
-              name="carbs"
-              type="number"
-              min="0"
-            />
+            <input required name="carbs" type="number" min="0" />
           </label>
           <label>
             Difficulty
@@ -89,6 +79,14 @@ export default function AddMealPage() {
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
+            </select>
+          </label>
+          <label>
+            Image
+            <select name="imageUrl" defaultValue="">
+              <option value="">No image</option>
+              <option value="/images/oatmeal.jpg">Overnight oats</option>
+              <option value="/images/spaghetti.jpg">Spaghetti</option>
             </select>
           </label>
         </div>

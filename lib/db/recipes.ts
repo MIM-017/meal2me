@@ -31,6 +31,7 @@ export interface RecipeSummary {
   difficulty: Difficulty;
   cost: number; // dollars, whole recipe
   macros: Macros | null;
+  imageUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,6 +64,7 @@ interface RecipeRow {
   calories: number | null;
   protein_g: number | null;
   carbs_g: number | null;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
   author_id: number;
@@ -71,7 +73,7 @@ interface RecipeRow {
 
 const SUMMARY_COLUMNS = `
   r.id, r.name, r.cook_time_minutes, r.difficulty, r.cost_cents,
-  r.calories, r.protein_g, r.carbs_g, r.created_at, r.updated_at,
+  r.calories, r.protein_g, r.carbs_g, r.image_url, r.created_at, r.updated_at,
   u.id AS author_id, u.username AS author_username`;
 
 function toSummary(row: RecipeRow): RecipeSummary {
@@ -86,6 +88,7 @@ function toSummary(row: RecipeRow): RecipeSummary {
     macros: hasMacros
       ? { calories: row.calories, protein: row.protein_g, carbs: row.carbs_g }
       : null,
+    imageUrl: row.image_url,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -129,6 +132,7 @@ function recipeParams(input: RecipeInput) {
     calories: input.macros?.calories ?? null,
     protein_g: input.macros?.protein ?? null,
     carbs_g: input.macros?.carbs ?? null,
+    image_url: input.imageUrl,
   };
 }
 
@@ -194,9 +198,9 @@ export function createRecipe(db: DB, authorId: unknown, data: unknown): Recipe {
     const { id } = db
       .prepare(
         `INSERT INTO recipes
-           (author_id, name, notes, cook_time_minutes, difficulty, cost_cents, calories, protein_g, carbs_g)
+           (author_id, name, notes, cook_time_minutes, difficulty, cost_cents, calories, protein_g, carbs_g, image_url)
          VALUES
-           (@author_id, @name, @notes, @cook_time_minutes, @difficulty, @cost_cents, @calories, @protein_g, @carbs_g)
+           (@author_id, @name, @notes, @cook_time_minutes, @difficulty, @cost_cents, @calories, @protein_g, @carbs_g, @image_url)
          RETURNING id`,
       )
       .get({
@@ -223,7 +227,7 @@ export function updateRecipe(db: DB, id: unknown, actorId: unknown, data: unknow
       `UPDATE recipes SET
          name = @name, notes = @notes, cook_time_minutes = @cook_time_minutes,
          difficulty = @difficulty, cost_cents = @cost_cents, calories = @calories, protein_g = @protein_g,
-         carbs_g = @carbs_g, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+         carbs_g = @carbs_g, image_url = @image_url, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
        WHERE id = @id`,
     ).run({
       id: recipeId,
