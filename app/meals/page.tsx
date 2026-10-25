@@ -1,18 +1,16 @@
-"use client";
+import { MealCard } from "../../components/meal-card";
+import { getRequestDb, searchRecipes } from "@/lib/db";
 
-import { MealCard } from "../meal-card";
-import { useMeals } from "../meals-context";
-
-export default function MealsPage() {
-  const { meals } = useMeals();
+export default async function MealsPage() {
+  const recipes = searchRecipes(await getRequestDb());
 
   return (
     <main>
       <h2>Meal directory</h2>
-      <p className="empty">{meals.length} meals in the catalog.</p>
+      <p className="empty">{recipes.total} meals in the catalog.</p>
       <div className="meal-list">
-        {meals.map((meal) => (
-          <MealCard key={meal.id} meal={meal} />
+        {recipes.items.map((recipe) => (
+            <MealCard key={recipe.id} recipeID={recipe.id} />
         ))}
       </div>
     </main>

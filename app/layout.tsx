@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MealsProvider } from "./meals-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +11,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
       <body>
-        <MealsProvider>
           <div className="shell">
             <header className="site-header">
               <div>
@@ -27,7 +25,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </header>
             {children}
           </div>
-        </MealsProvider>
       </body>
     </html>
   );
