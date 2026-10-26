@@ -7,6 +7,7 @@ export type MealSearchResult = {
     id: number;
     name: string;
     author: string;
+    imageUrl: string | null; // e.g. /images/oatmeal.jpg, or null = no picture
 };
 export type MealSearchResponse = {
     items: MealSearchResult[]; // at most LIMITS.pageSize (50)
@@ -41,6 +42,7 @@ export async function searchMeals(query: unknown): Promise<MealSearchResponse> {
             id: recipe.id,
             name: recipe.name,
             author: recipe.author.username,
+            imageUrl: recipe.imageUrl,
         })),
         total: results.total,
     };
