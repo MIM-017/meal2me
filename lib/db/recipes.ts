@@ -305,6 +305,20 @@ export function searchRecipes(db: DB, options: SearchInput = {}): SearchResult {
     where.push("r.cook_time_minutes <= ?");
     params.push(opts.maxCookTime);
   }
+  if (opts.ingredient) {
+    const m = buildMatchExpression(opts.ingredient, "ingredients");
+    if (m === null) return empty;
+    where.push("r.id IN (SELECT rowid FROM recipe_search WHERE recipe_search MATCH ?)");
+    params.push(m);
+  }
+  if (opts.minProtein !== null) {
+    where.push("r.protein_g >= ?");
+    params.push(opts.minProtein);
+  }
+  if (opts.maxCarbs !== null) {
+    where.push("r.carbs_g <= ?");
+    params.push(opts.maxCarbs);
+  }
   if (opts.author) {
     where.push("u.username = ?"); // case-insensitive via the column's NOCASE
     params.push(opts.author);
