@@ -1,7 +1,7 @@
-import { RecipeSummary } from "@/lib/db";
+import { MealSearchResult } from "@/app/lib/searchMeals";
 import Image from "next/image";
 
-export default function MealCard({ meal }: { meal: RecipeSummary}) {
+export default function MealCard({ meal }: { meal: MealSearchResult}) {
 
     return (
         <div className="meal-card">

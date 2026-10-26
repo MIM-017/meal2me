@@ -1,14 +1,11 @@
-import { getRequestDb, searchRecipes } from "@/lib/db";
 import MealCard from "./meal-card-small";
+import { MealSearchResult } from "@/app/lib/searchMeals";
 
-export default async function MealList() {
-    const db = await getRequestDb();
-    const meals = searchRecipes(db).items;
-    console.log(meals);
+export default function MealList({ items }: { items: MealSearchResult[] }) {
 
     return (
     <div className="meal-list">
-        {meals.map((meal) => <MealCard meal={meal} key={meal.id}/>)}
+        {items.map((meal) => <MealCard meal={meal} key={meal.id}/>)}
     </div>
     );
 }

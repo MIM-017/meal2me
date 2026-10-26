@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { searchMeals, type MealSearchResponse } from "@/app/lib/searchMeals";
+import MealList from "./meals-list";
 
 // Same as LIMITS.queryLength in lib/db/validation.ts. Not imported from
 // "@/lib/db" because that module must never be imported by a client file.
@@ -106,13 +107,7 @@ export function SearchBar() {
               {results.total} {results.total === 1 ? "recipe" : "recipes"} found for &ldquo;{searchedFor}&rdquo;
               {results.total > results.items.length && ` (showing the first ${results.items.length})`}
             </p>
-            <ul className="search-results">
-              {results.items.map((recipe) => (
-                <li key={recipe.id}>
-                  {recipe.name} <span className="empty">by {recipe.author}</span>
-                </li>
-              ))}
-            </ul>
+            <MealList items={results.items}/>
           </>
         )}
       </div>

@@ -169,6 +169,7 @@ button.secondary {
 
 /* Search box with a line on each side:  ——— ( Search... ) ——— */
 .search {
+  width: 100vw;
   display: flex;
   align-items: center;
   gap: 24px;
@@ -206,11 +207,7 @@ button.secondary {
   margin: 0;
   padding-left: 20px;
   font-size: 1.1rem;
-}
-
-.search-results li {
-  padding: 4px 0;
-}
+}    
 
 /* Hidden on screen but still read by screen readers. */
 .visually-hidden {
