@@ -20,6 +20,8 @@ body {
   color: var(--ink);
   font-family: "Liberation Serif", Arial, Helvetica, sans-serif;
   line-height: 1.45;
+  display: flex;
+  justify-content: center;
 }
 
 a {
@@ -27,8 +29,7 @@ a {
 }
 
 .shell {
-  max-width: 860px;
-  margin: 0 auto;
+  min-width: 860px;
   padding: 24px 16px 48px;
 }
 
@@ -39,6 +40,7 @@ a {
   gap: 16px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
 }
 
 .site-navigation a {
@@ -113,13 +115,19 @@ button.secondary {
 
 .meal-list {
   display: grid;
+  justify-content: center;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
-.meal-card {
+.meal-name {
+  text-align: center;
+  font-weight: bold;
+}
+
+.meal-card img {
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 14px 16px;
   background: var(--paper);
 }
 
