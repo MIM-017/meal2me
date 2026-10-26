@@ -18,7 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 <Image src="/logo.png" alt="Meal2Me" width={60} height={60}/>
                 <Link href="/add">Add meal</Link>
                 <Link href="/" className="site-logo">Meal2Me</Link>
-                <Link href="/">Filters</Link>
+                <Link href="/filters">Filters</Link>
                 <Link href="/meals">All Recipes</Link>
               </nav>
             </header>

@@ -56,6 +56,9 @@ export interface SearchOptions {
   maxCookTime: number | null;
   maxCalories: number | null;
   maxCostCents: number | null;
+  ingredient: string | null;   
+  minProtein: number | null;   
+  maxCarbs: number | null;  
   author: string | null;
   sort: Sort;
   page: number;
@@ -352,6 +355,15 @@ export function parseSearchOptions(input: SearchInput = {}): SearchOptions {
       ? null
       : (wholeNumber(toInt(input.maxCalories), "maxCalories", 0, LIMITS.calories, issues) ?? null),
     maxCostCents: empty(input.maxCost) ? null : (dollarsToCents(input.maxCost, "maxCost", issues, true) ?? null),
+    ingredient: empty(input.ingredient)
+      ? null
+      : (singleLine(input.ingredient, "ingredient", LIMITS.queryLength, issues) ?? null),
+    minProtein: empty(input.minProtein)
+      ? null
+      : (wholeNumber(toInt(input.minProtein), "minProtein", 0, LIMITS.grams, issues) ?? null),
+    maxCarbs: empty(input.maxCarbs)
+      ? null
+      : (wholeNumber(toInt(input.maxCarbs), "maxCarbs", 0, LIMITS.grams, issues) ?? null),
     author: empty(input.author) ? null : (singleLine(input.author, "author", 30, issues) ?? null),
     page: empty(input.page) ? 1 : (wholeNumber(toInt(input.page), "page", 1, 10000, issues) ?? 1),
     pageSize: empty(input.pageSize)
