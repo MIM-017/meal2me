@@ -30,6 +30,7 @@ a {
 
 .shell {
   min-width: 860px;
+  width: 80dvw;
   padding: 24px 16px 48px;
 }
 
@@ -169,7 +170,6 @@ button.secondary {
 
 /* Search box with a line on each side:  ——— ( Search... ) ——— */
 .search {
-  width: 100vw;
   display: flex;
   align-items: center;
   gap: 24px;
