@@ -10,6 +10,8 @@ export default function AddMealPage() {
   const [cost, setCost] = useState("");
   const [cookTime, setCookTime] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
+  const [ingredients, setIngredients] = useState("");
+  const [instructions, setInstructions] = useState("");
   const [state, formAction, pending] = useActionState<AddMealState, FormData>(addMealSystem, null);
 
   return (
@@ -53,6 +55,31 @@ export default function AddMealPage() {
           <label>
             Photo (optional)
             <input name="image" type="file" accept="image/jpeg,image/png,image/webp" />
+          </label>
+        </div>
+                <div className="recipe-fields">
+          <label>
+            Ingredients (one per line)
+            <textarea
+              name="ingredients"
+              required
+              rows={8}
+              placeholder={"2 cups rolled oats\n1 cup milk\n1 tbsp honey"}
+              value={ingredients}
+              onChange={(e) => setIngredients(e.target.value)}
+            />
+          </label>
+          <label>
+            Instructions (one step per line)
+            <textarea
+              name="instructions"
+              required
+              rows={8}
+              maxLength={20000}
+              placeholder={"Bring the milk to a simmer.\nStir in the oats and cook for 5 minutes.\nTop with honey and serve."}
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+            />
           </label>
         </div>
         <div className="actions">
