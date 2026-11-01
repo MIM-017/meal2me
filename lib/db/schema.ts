@@ -135,6 +135,38 @@ export const MIGRATIONS: readonly Migration[] = [
         CHECK (image_url IS NULL OR length(image_url) BETWEEN 1 AND 500);
     `,
   },
+    {
+    // Every account gets an email and a password.
+    version: 3,
+    sql: `
+      -- Email is NULL only for users made before version 3 (the old "system"
+      -- user); there's no real address to fill in for them. The trigger makes
+      -- it required for every NEW user. Case-insensitive, like usernames.
+      -- (ALTER TABLE can't add a UNIQUE column, so uniqueness is an index.)
+      ALTER TABLE users ADD COLUMN email TEXT COLLATE NOCASE
+        CHECK (email IS NULL OR (email = trim(email)
+                                 AND length(email) BETWEEN 3 AND 254
+                                 AND email LIKE '_%@_%'));
+      CREATE UNIQUE INDEX idx_users_email ON users (email);
+
+      CREATE TRIGGER users_require_email BEFORE INSERT ON users
+      WHEN NEW.email IS NULL
+      BEGIN
+        SELECT RAISE(ABORT, 'users.email is required');
+      END;
+
+      -- Passwords are stored ONLY as a salted scrypt hash, in their own table
+      -- so no query on users (author names, recipe joins) can leak one. Other
+      -- sign-in methods can be added later as their own tables.
+      CREATE TABLE user_credentials (
+        user_id       INTEGER PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
+        password_hash TEXT    NOT NULL
+                      CHECK (length(password_hash) BETWEEN 20 AND 500
+                             AND password_hash GLOB '[a-z0-9]*$*'),
+        updated_at    TEXT    NOT NULL DEFAULT ${NOW}
+      ) STRICT;
+    `,
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;
