@@ -167,6 +167,24 @@ export const MIGRATIONS: readonly Migration[] = [
       ) STRICT;
     `,
   },
+    {
+    // Login sessions. The browser holds a random token in an httpOnly cookie;
+    // only its SHA-256 is stored here, so a leaked database (or backup) can't
+    // be used to sign in as anyone. Logging out deletes the row.
+    version: 4,
+    sql: `
+      CREATE TABLE sessions (
+        token_hash TEXT    PRIMARY KEY
+                   CHECK (length(token_hash) = 64 AND token_hash NOT GLOB '*[^0-9a-f]*'),
+        user_id    INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+        created_at TEXT    NOT NULL DEFAULT ${NOW},
+        expires_at TEXT    NOT NULL
+      ) STRICT, WITHOUT ROWID;
+ 
+      CREATE INDEX idx_sessions_user_id    ON sessions (user_id);
+      CREATE INDEX idx_sessions_expires_at ON sessions (expires_at);
+    `,
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

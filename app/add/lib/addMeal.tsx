@@ -3,14 +3,11 @@
 import {
     getRequestDb,
     createRecipe,
-    createUser,
-    getUserByUsername,
-    NotFoundError,
     DbError,
     DIFFICULTIES,
     LIMITS,
-    type User,
 } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -85,18 +82,12 @@ export async function addMealSystem(
     _prev: AddMealState,
     formData: FormData,
 ): Promise<AddMealState> {
+    // Server actions can be called directly, not just from the form, so the
+    // session is checked here too. The meal is saved under this user's name.
+    const user = await getCurrentUser();
+    if (!user) redirect("/login?next=/add");
     const db = await getRequestDb();
 
-    let user: User;
-    try {
-        user = getUserByUsername(db, "system");
-    } catch (error) {
-        if (error instanceof NotFoundError) {
-            user = createUser(db, "system");
-        } else {
-            throw error;
-        }
-    }
 
     const name = formData.get("name")?.toString().trim();
     if (!name) return { error: "Meal name not specified" };

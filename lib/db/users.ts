@@ -109,3 +109,26 @@ export async function checkPassword(db: DB, login: unknown, password: unknown): 
   }
   return (await verifyPassword(password, row.password_hash)) ? toUser(row) : null;
 }
+/**
+ * Login form check: username AND email AND password must all belong to the
+ * same account. Returns null if any one is wrong, without saying which, so
+ * the form can't be used to find out which usernames or emails exist.
+ */
+export async function checkLogin(db: DB, data: unknown): Promise<User | null> {
+  const { username, email, password } = (data ?? {}) as Record<string, unknown>;
+  // Usernames can't contain "@"; refuse one here so checkPassword() can't
+  // treat the username field as an email login.
+  const name = typeof username === "string" && !username.includes("@") ? username : "";
+  const user = await checkPassword(db, name, password); // always runs a hash: same timing either way
+  if (!user || user.email === null) return null;
+  let wanted: string;
+  try {
+    wanted = parseEmail(email);
+  } catch (err) {
+    if (err instanceof ValidationError) return null;
+    throw err;
+  }
+  // Compare in SQL so it matches exactly like the UNIQUE index (COLLATE NOCASE).
+  const match = db.prepare("SELECT 1 FROM users WHERE id = ? AND email = ?").get(user.id, wanted);
+  return match ? user : null;
+}

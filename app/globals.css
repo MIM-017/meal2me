@@ -34,14 +34,21 @@ a {
   padding: 24px 16px 48px;
 }
 
-.site-navigation {
+.site-header {
   display: flex;
   align-items: center;
-  justify-content: space-around;
   gap: 16px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--line);
   margin-bottom: 16px;
+}
+ 
+.site-navigation {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 16px;
 }
 
 .site-navigation a {
@@ -375,4 +382,68 @@ textarea {
   .recipe-stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* ---- Auth: header login button + login / sign-up forms ---- */
+
+/* Top-right corner of the header. min-width reserves the space while it loads. */
+.auth-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 96px;
+  white-space: nowrap;
+}
+
+.auth-status form {
+  margin: 0;
+}
+
+.auth-user {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.auth-user strong {
+  color: var(--text-header);
+}
+
+.button-link {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+.button-link:hover,
+.button-link:focus-visible {
+  filter: brightness(1.08);
+}
+
+.auth-panel {
+  max-width: 420px;
+  margin: 32px auto;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-error {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #e8b4b4;
+  border-radius: 4px;
+  background: #fdf0f0;
+  color: #b00020;
+}
+
+.auth-switch {
+  margin: 16px 0 0;
+  color: var(--muted);
 }

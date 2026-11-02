@@ -7,6 +7,7 @@ export { getRequestDb } from "./request";
 export * from "./errors";
 export * from "./recipes";
 export * from "./users";
+export * from "./sessions";
 export {
   DIFFICULTIES,
   LIMITS,
