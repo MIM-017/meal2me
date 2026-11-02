@@ -28,6 +28,9 @@ export const LIMITS = {
   grams: 10000,
   queryLength: 200,
   pageSize: 50,
+  emailLength: 254,
+  passwordMin: 8,
+  passwordMax: 128,
 } as const;
 
 /** Macros for the whole recipe. Any of them may be missing. */
@@ -298,6 +301,93 @@ export function parseUsername(value: unknown): string {
   return value.trim();
 }
 
+// ---------------------------------------------------------------------------
+// Accounts (email + password)
+// ---------------------------------------------------------------------------
+
+export interface AccountInput {
+  username: string;
+  email: string;
+  password: string; // plain text: only ever passed to hashPassword()
+}
+
+export interface NewUserInput {
+  username: string;
+  email: string;
+  passwordHash: string;
+}
+
+// Loose on purpose: one "@", text on both sides, a dot in the domain, no
+// spaces. Stricter patterns reject real addresses.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// "<algorithm>$..." as made by passwords.ts. Matches the CHECK in schema.ts.
+const PASSWORD_HASH_RE = /^[a-z0-9]+\$\S+$/;
+
+/** Run a parse* function, adding its issues to `issues` instead of throwing. */
+function collect<T>(parse: () => T, issues: Issue[]): T | undefined {
+  try {
+    return parse();
+  } catch (err) {
+    if (!(err instanceof ValidationError)) throw err;
+    issues.push(...err.issues);
+    return undefined;
+  }
+}
+
+/** A trimmed email address. */
+export function parseEmail(value: unknown): string {
+  const s = typeof value === "string" ? value.normalize("NFC").trim() : "";
+  if (charCount(s) > LIMITS.emailLength || CONTROL_CHARS.test(s) || !EMAIL_RE.test(s)) {
+    throw new ValidationError([{ field: "email", message: "must be a valid email address" }]);
+  }
+  return s;
+}
+
+/** Only length is checked (NIST guidance). Not trimmed: spaces are allowed. */
+function parsePassword(value: unknown): string {
+  const n = typeof value === "string" ? charCount(value) : 0;
+  if (n < LIMITS.passwordMin || n > LIMITS.passwordMax) {
+    throw new ValidationError([
+      { field: "password", message: `must be ${LIMITS.passwordMin}-${LIMITS.passwordMax} characters` },
+    ]);
+  }
+  return value as string;
+}
+
+function parsePasswordHash(value: unknown): string {
+  if (typeof value === "string" && value.length >= 20 && value.length <= 500 && PASSWORD_HASH_RE.test(value)) {
+    return value;
+  }
+  throw new ValidationError([{ field: "passwordHash", message: "must come from hashPassword(), never a plain password" }]);
+}
+
+/** { username, email, password } for a new account. Reports every bad field at once. */
+export function parseAccountInput(data: unknown): AccountInput {
+  if (!isPlainObject(data)) throw new ValidationError([{ field: "body", message: "must be an object" }]);
+  const issues: Issue[] = [];
+  rejectUnknownKeys(data, ["username", "email", "password"], "", issues);
+  const result = {
+    username: collect(() => parseUsername(data.username), issues),
+    email: collect(() => parseEmail(data.email), issues),
+    password: collect(() => parsePassword(data.password), issues),
+  };
+  if (issues.length > 0) throw new ValidationError(issues);
+  return result as AccountInput;
+}
+
+/** { username, email, passwordHash }: what the database stores. */
+export function parseNewUserInput(data: unknown): NewUserInput {
+  if (!isPlainObject(data)) throw new ValidationError([{ field: "body", message: "must be an object" }]);
+  const issues: Issue[] = [];
+  rejectUnknownKeys(data, ["username", "email", "passwordHash"], "", issues);
+  const result = {
+    username: collect(() => parseUsername(data.username), issues),
+    email: collect(() => parseEmail(data.email), issues),
+    passwordHash: collect(() => parsePasswordHash(data.passwordHash), issues),
+  };
+  if (issues.length > 0) throw new ValidationError(issues);
+  return result as NewUserInput;
+}
 /** Database ids are positive integers. Accepts a number or a digit string (from a URL). */
 export function parseId(value: unknown, field = "id"): number {
   const n = typeof value === "string" && /^[1-9]\d{0,15}$/.test(value) ? Number(value) : value;

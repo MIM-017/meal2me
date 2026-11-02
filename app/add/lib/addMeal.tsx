@@ -8,6 +8,7 @@ import {
     NotFoundError,
     DbError,
     DIFFICULTIES,
+    LIMITS,
     type User,
 } from "@/lib/db";
 import { redirect } from "next/navigation";
@@ -49,7 +50,37 @@ function numberField(formData: FormData, key: string, label: string): number | {
     if (raw === "" || Number.isNaN(n) || n < 0) return { error: `${label} must be a number, 0 or higher` };
     return n;
 }
+/**
+ * Ingredients textarea -> list, one ingredient per line.
+ * Blank lines are dropped, and a leading "-", "*" or "•" bullet is removed.
+ */
+function ingredientsField(formData: FormData): string[] | { error: string } {
+    const raw = formData.get("ingredients")?.toString() ?? "";
+    const items = raw
+        .split(/\r\n|\r|\n/)
+        .map((line) => line.replace(/\t/g, " ").replace(/^\s*[-*•]\s*/, "").trim())
+        .filter((line) => line !== "");
 
+    if (items.length === 0) return { error: "Add at least one ingredient" };
+    if (items.length > LIMITS.ingredientCount) {
+        return { error: `A recipe can have at most ${LIMITS.ingredientCount} ingredients` };
+    }
+    const tooLong = items.find((item) => Array.from(item).length > LIMITS.ingredientLength);
+    if (tooLong) {
+        return { error: `Each ingredient must be at most ${LIMITS.ingredientLength} characters` };
+    }
+    return items;
+}
+
+/** Instructions textarea. Line breaks are kept; each line is shown as one step. */
+function instructionsField(formData: FormData): string | { error: string } {
+    const text = (formData.get("instructions")?.toString() ?? "").replace(/\r\n?/g, "\n").trim();
+    if (text === "") return { error: "Instructions not specified" };
+    if (Array.from(text).length > LIMITS.notesLength) {
+        return { error: `Instructions must be at most ${LIMITS.notesLength} characters` };
+    }
+    return text;
+}
 export async function addMealSystem(
     _prev: AddMealState,
     formData: FormData,
@@ -83,7 +114,11 @@ export async function addMealSystem(
     for (const v of [cookTime, cost, proteins, calories, carbs]) {
         if (typeof v === "object") return v;
     }
+    const ingredients = ingredientsField(formData);
+    if (!Array.isArray(ingredients)) return ingredients;
 
+    const instructions = instructionsField(formData);
+    if (typeof instructions === "object") return instructions;
     const image = await saveImage(formData.get("image"));
     if (image !== null && typeof image === "object") return image;
     const imageUrl = image;
@@ -94,8 +129,8 @@ export async function addMealSystem(
         difficulty,
         cost,
         macros: { protein: proteins, carbs, calories },
-        ingredients: ["Inoperable"],
-        notes: null,
+        ingredients,
+        notes: instructions, // stored in the recipes.notes column
         imageUrl,
     };
 

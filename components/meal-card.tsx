@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { getRecipe, Recipe, getRequestDb } from "@/lib/db";
 
 export async function MealCard({ recipeID }: { recipeID: unknown }) {
@@ -16,7 +17,7 @@ export async function MealCard({ recipeID }: { recipeID: unknown }) {
           style={{ width: "100%", height: "auto", borderRadius: 6, marginBottom: 10 }}
         />
       )}
-      <h3>{recipe.name}</h3>
+      <h3><Link href={`/recipes/${recipe.id}`}>{recipe.name}</Link></h3>
       <dl>
         <div><dt>Calories</dt><dd>{m?.calories ?? "—"}</dd></div>
         <div><dt>Protein</dt><dd>{m?.protein != null ? `${m.protein} g` : "—"}</dd></div>
