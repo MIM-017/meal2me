@@ -1,0 +1,55 @@
+/* Dark palette: used when the OS is dark, unless the user picked light */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1713;
+      --paper: #26201a;
+      --ink: #f1e8dc;
+      --muted: #b8a893;
+      --line: #3d332a;
+      --accent: #e07a3f;
+      --accent-ink: #1c1713;
+      --text-header: #f1e8dc;
+    }
+  }
+  
+  /* Dark palette: used when the user picked dark with the toggle */
+  :root[data-theme="dark"] {
+    --bg: #1c1713;
+    --paper: #26201a;
+    --ink: #f1e8dc;
+    --muted: #b8a893;
+    --line: #3d332a;
+    --accent: #e07a3f;
+    --accent-ink: #1c1713;
+    --text-header: #f1e8dc;
+  }
+  
+  /* Inputs have a hardcoded white background in globals.css */
+  :root[data-theme="dark"] input,
+  :root[data-theme="dark"] select {
+    background: var(--paper);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) input,
+    :root:not([data-theme="light"]) select {
+      background: var(--paper);
+    }
+  }
+  
+  .theme-toggle {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  
+  /* Logo: flip the dark line drawing to light in dark mode */
+  :root[data-theme="dark"] .site-navigation img {
+    filter: invert(1);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .site-navigation img {
+      filter: invert(1);
+    }
+  }
