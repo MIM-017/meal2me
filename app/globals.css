@@ -1,12 +1,12 @@
 :root {
-  --bg: #f6f1e8;
-  --paper: #fffdf8;
-  --ink: #2b2118;
+  --bg: #fbf6ec;
+  --paper: #ffffff;
+  --ink: #2a2118;
   --muted: #6b5a4a;
-  --line: #e2d4c2;
-  --accent: #c45c26;
-  --accent-ink: #fffdf8;
-  --text-header: #452323;
+  --line: #eadfca;
+  --accent: #d6402b;
+  --accent-ink: #ffffff;
+  --text-header: #2f5d3a;
 }
 
 html,
@@ -39,10 +39,10 @@ a {
   align-items: center;
   gap: 16px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 3px solid var(--accent);
   margin-bottom: 16px;
 }
- 
+
 .site-navigation {
   flex: 1;
   display: flex;
@@ -53,7 +53,11 @@ a {
 
 .site-navigation a {
   text-decoration: none;
-  color: var(--text-header)
+  color: var(--text-header);
+}
+
+.site-navigation a:hover {
+  color: var(--accent);
 }
 
 .site-logo {
@@ -108,10 +112,15 @@ button {
   font: inherit;
   cursor: pointer;
   border: 0;
-  border-radius: 4px;
-  padding: 8px 14px;
+  border-radius: 999px;
+  padding: 9px 20px;
   background: var(--accent);
   color: var(--accent-ink);
+  transition: filter 0.15s ease;
+}
+
+button:hover {
+  filter: brightness(1.1);
 }
 
 button[type="reset"],
@@ -133,10 +142,22 @@ button.secondary {
   font-weight: bold;
 }
 
+.meal-card {
+  border-radius: 8px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.meal-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(60, 40, 20, 0.14);
+}
+
 .meal-card img {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--paper);
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
 }
 
 .meal-card h3 {
@@ -214,7 +235,7 @@ button.secondary {
   margin: 0;
   padding-left: 20px;
   font-size: 1.1rem;
-}    
+}
 
 /* Hidden on screen but still read by screen readers. */
 .visually-hidden {
@@ -237,7 +258,7 @@ button.secondary {
   .meal-card dl {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .home-title {
     font-size: 2rem;
   }
@@ -253,7 +274,7 @@ button.secondary {
 }
 
 input[type="file"] {
-  color: transparent; 
+  color: transparent;
 }
 
 input[type="file"]::file-selector-button {
@@ -261,7 +282,6 @@ input[type="file"]::file-selector-button {
   font: inherit;
   cursor: pointer;
 }
-
 
 .file-button {
   display: inline-block;
@@ -412,7 +432,7 @@ textarea {
 .button-link {
   display: inline-block;
   padding: 8px 14px;
-  border-radius: 4px;
+  border-radius: 999px;
   background: var(--accent);
   color: var(--accent-ink);
   text-decoration: none;
