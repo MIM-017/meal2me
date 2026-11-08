@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { searchMeals, getAllMeals, type MealSearchResponse } from "@/app/lib/searchMeals";
 import MealList from "./meals-list";
+import { redirect, RedirectType } from "next/navigation";
 
 // Same as LIMITS.queryLength in lib/db/validation.ts. Not imported from
 // "@/lib/db" because that module must never be imported by a client file.
@@ -35,6 +36,13 @@ export function SearchBar() {
   useEffect(() => {
     runDefaultFill();
   }, []);
+
+  async function navigateToRandomMeal() {
+    const meals = await getAllMeals();
+    const randomIndex = Math.floor(Math.random() * meals.total);
+    const randomMeal = meals.items[randomIndex];
+    redirect("/recipes/" + randomMeal.id, RedirectType.push);
+  }
 
   function clearResults() {
     clearTimeout(typingTimer); // drop a search that hasn't started yet
@@ -90,8 +98,8 @@ export function SearchBar() {
   }
 
   return (
-    <>
-      <form role="search" className="search" onSubmit={handleSubmit}>
+    <div style={{display: "flex", alignItems: "center", flexDirection: "column"}}>
+      <form role="search" className="search" onSubmit={handleSubmit} style={{width: "100%"}}>
         <label htmlFor="recipe-search" className="visually-hidden">
           Search recipes by name
         </label>
@@ -106,6 +114,8 @@ export function SearchBar() {
           onChange={(event) => handleChange(event.target.value)}
         />
       </form>
+
+      <button style={{width: "30%", marginTop: 24}} onClick={() => navigateToRandomMeal()}>Surprise me!</button>
 
       <p className="home-hint">Click on any meal to learn more information</p>
 
@@ -128,6 +138,6 @@ export function SearchBar() {
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }
