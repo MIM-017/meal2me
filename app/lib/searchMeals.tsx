@@ -1,7 +1,7 @@
 'use server'
 
 // Relative import (like app/meals/page.tsx does) so vitest can load this file.
-import { getRequestDb, searchRecipes, LIMITS } from "../../lib/db";
+import { getRequestDb, searchRecipes, LIMITS, SearchResult } from "../../lib/db";
 
 export type MealSearchResult = {
     id: number;
@@ -37,6 +37,21 @@ export async function searchMeals(query: unknown): Promise<MealSearchResponse> {
 
     // Only send what the search bar shows. Recipes from different authors can
     // share a name, so the id (unique) is the React key and the author tells them apart.
+    return {
+        items: results.items.map((recipe) => ({
+            id: recipe.id,
+            name: recipe.name,
+            author: recipe.author.username,
+            imageUrl: recipe.imageUrl,
+        })),
+        total: results.total,
+    };
+}
+
+export async function getAllMeals(): Promise<MealSearchResponse> {
+    const db = await getRequestDb();
+    const results = await searchRecipes(db);
+
     return {
         items: results.items.map((recipe) => ({
             id: recipe.id,

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { searchMeals, type MealSearchResponse } from "@/app/lib/searchMeals";
+import { useEffect, useState, type FormEvent } from "react";
+import { searchMeals, getAllMeals, type MealSearchResponse } from "@/app/lib/searchMeals";
 import MealList from "./meals-list";
 
 // Same as LIMITS.queryLength in lib/db/validation.ts. Not imported from
@@ -22,8 +22,19 @@ export function SearchBar() {
   const [query, setQuery] = useState("");
   // null = nothing searched yet, so nothing is shown.
   const [results, setResults] = useState<MealSearchResponse | null>(null);
+  const [defaultFill, setDefaultFill] = useState<boolean>(true);
   const [searchedFor, setSearchedFor] = useState("");
   const [failed, setFailed] = useState(false);
+
+  async function runDefaultFill() {
+      const found = await getAllMeals();
+      setResults(found);
+  }
+
+  // Fill the initial page on first load
+  useEffect(() => {
+    runDefaultFill();
+  }, []);
 
   function clearResults() {
     clearTimeout(typingTimer); // drop a search that hasn't started yet
@@ -39,9 +50,12 @@ export function SearchBar() {
 
     // Nothing typed, or only spaces: show no recipes.
     if (q === "") {
-      clearResults();
+      runDefaultFill();
+      setDefaultFill(true);
       return;
     }
+    setDefaultFill(false);
+
 
     const thisSearch = ++latestSearch;
     try {
@@ -62,7 +76,8 @@ export function SearchBar() {
     clearTimeout(typingTimer);
     if (text.trim() === "") {
       // Box emptied (or only spaces left): hide results right away.
-      clearResults();
+      runDefaultFill();
+      setDefaultFill(true);
       return;
     }
     // Old results stay on screen until the new ones arrive (no flicker).
@@ -104,7 +119,9 @@ export function SearchBar() {
         {results && results.total > 0 && (
           <>
             <p className="empty">
-              {results.total} {results.total === 1 ? "recipe" : "recipes"} found for &ldquo;{searchedFor}&rdquo;
+              {!defaultFill ? 
+              <>{results.total} {results.total === 1 ? "recipe" : "recipes"} found for &ldquo;{searchedFor}&rdquo;</>
+              : null}
               {results.total > results.items.length && ` (showing the first ${results.items.length})`}
             </p>
             <MealList items={results.items}/>
