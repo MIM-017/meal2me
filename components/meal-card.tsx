@@ -1,13 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getRecipe, Recipe, getRequestDb } from "@/lib/db";
+import { getRecipe, Recipe, getRequestDb, isFavorite } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { FavoriteButton } from "./favorite-button";
 
 export async function MealCard({ recipeID }: { recipeID: unknown }) {
-  const recipe: Recipe = getRecipe(await getRequestDb(), recipeID);
+  const db = await getRequestDb();
+  const recipe: Recipe = getRecipe(db, recipeID);
   const m = recipe.macros;
+  const user = await getCurrentUser();
 
   return (
     <article className="meal-card">
+      {user && <FavoriteButton recipeId={recipe.id} initialFavorited={isFavorite(db, user.id, recipe.id)} />}
       {recipe.imageUrl && (
         <Image
           src={recipe.imageUrl}

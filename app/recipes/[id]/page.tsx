@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getRecipe, getRequestDb, NotFoundError, ValidationError, type Recipe } from "@/lib/db";
+import { getRecipe, getRequestDb, isFavorite, NotFoundError, ValidationError, type Recipe } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { FavoriteButton } from "@/components/favorite-button";
 
 /** "1. Boil water" / "Step 2: Drain" -> "Boil water" / "Drain", since the <ol> numbers them. */
 function toSteps(instructions: string): string[] {
@@ -14,9 +16,10 @@ function toSteps(instructions: string): string[] {
 async function RecipeContent({ params }: { params: PageProps<"/recipes/[id]">["params"] }) {
   const { id } = await params;
 
+  const db = await getRequestDb();
   let recipe: Recipe;
   try {
-    recipe = getRecipe(await getRequestDb(), id);
+    recipe = getRecipe(db, id);
   } catch (error) {
     // Bad id in the URL (e.g. /recipes/abc) or no recipe with that id.
     if (error instanceof ValidationError || error instanceof NotFoundError) notFound();
@@ -25,12 +28,16 @@ async function RecipeContent({ params }: { params: PageProps<"/recipes/[id]">["p
 
   const m = recipe.macros;
   const steps = recipe.notes ? toSteps(recipe.notes) : [];
+  const user = await getCurrentUser();
 
   return (
     <article className="recipe panel">
       <header className="recipe-header">
-        <h1>{recipe.name}</h1>
-        <p className="recipe-author">by {recipe.author.username}</p>
+        <div>
+          <h1>{recipe.name}</h1>
+          <p className="recipe-author">by {recipe.author.username}</p>
+        </div>
+        {user && <FavoriteButton recipeId={recipe.id} initialFavorited={isFavorite(db, user.id, recipe.id)} />}
       </header>
 
       {recipe.imageUrl && (

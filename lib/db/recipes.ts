@@ -54,7 +54,7 @@ export interface SearchResult {
 // Row mapping
 // ---------------------------------------------------------------------------
 
-interface RecipeRow {
+export interface RecipeRow {
   id: number;
   name: string;
   notes?: string | null; // only selected for a single recipe
@@ -71,12 +71,12 @@ interface RecipeRow {
   author_username: string;
 }
 
-const SUMMARY_COLUMNS = `
+export const SUMMARY_COLUMNS = `
   r.id, r.name, r.cook_time_minutes, r.difficulty, r.cost_cents,
   r.calories, r.protein_g, r.carbs_g, r.image_url, r.created_at, r.updated_at,
   u.id AS author_id, u.username AS author_username`;
 
-function toSummary(row: RecipeRow): RecipeSummary {
+export function toSummary(row: RecipeRow): RecipeSummary {
   const hasMacros = row.calories !== null || row.protein_g !== null || row.carbs_g !== null;
   return {
     id: row.id,

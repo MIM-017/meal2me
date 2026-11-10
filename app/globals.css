@@ -143,6 +143,7 @@ button.secondary {
 }
 
 .meal-card {
+  position: relative; /* anchors the favorite star in the top-right corner */
   border-radius: 8px;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -338,6 +339,13 @@ textarea {
   margin: 0 auto;
 }
 
+.recipe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .recipe-header h1 {
   margin: 0 0 4px;
   color: var(--text-header);
@@ -466,4 +474,74 @@ textarea {
 .auth-switch {
   margin: 16px 0 0;
   color: var(--muted);
+}
+
+
+/* ---- Favorites: star button + header link ---- */
+
+.favorite-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  /* Slightly see-through so it stays readable on top of any photo. */
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.favorite-button svg {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  transition: fill 0.15s ease, stroke 0.15s ease, transform 0.15s ease;
+}
+
+.favorite-button:hover svg {
+  stroke: #d99a00;
+  transform: scale(1.1);
+}
+
+.favorite-button[aria-pressed="true"] svg {
+  fill: #f5b301;
+  stroke: #d99a00;
+}
+
+.favorite-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* On a card: pinned to the top-right corner, over the photo. */
+.meal-card .favorite-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
+/* Card with no photo: keep the title from running under the star. */
+.meal-card:not(:has(img)):has(.favorite-button) h3 {
+  padding-right: 48px;
+}
+
+.meal-card:not(:has(img)):has(.favorite-button) .meal-name {
+  padding: 8px 48px;
+}
+
+.favorites-link {
+  white-space: nowrap;
+  text-decoration: none;
+  font-weight: bold;
+  color: var(--text-header);
+}
+
+.favorites-link:hover,
+.favorites-link:focus-visible {
+  color: var(--accent);
 }

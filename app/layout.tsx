@@ -34,9 +34,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <ThemeToggle />
             </nav>
             {/* Reads the session cookie, so it streams in; the rest of the page doesn't wait. */}
-            <Suspense fallback={<div className="auth-status" aria-hidden="true" />}>
+                        <Suspense fallback={<div className="auth-status" aria-hidden="true" />}>
               <AuthStatus />
             </Suspense>
+            <Link href="/favorites" className="favorites-link">★ Favorites</Link>
           </header>
           {children}
         </div>

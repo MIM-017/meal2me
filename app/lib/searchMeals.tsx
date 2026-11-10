@@ -1,13 +1,15 @@
 'use server'
 
 // Relative import (like app/meals/page.tsx does) so vitest can load this file.
-import { getRequestDb, searchRecipes, LIMITS, SearchResult } from "../../lib/db";
+import { getRequestDb, searchRecipes, getFavoriteIds, LIMITS, SearchResult, type DB } from "../../lib/db";
+import { getCurrentUser } from "../../lib/auth";
 
 export type MealSearchResult = {
     id: number;
     name: string;
     author: string;
     imageUrl: string | null; // e.g. /images/oatmeal.jpg, or null = no picture
+    favorited: boolean | null; // null = not logged in, so no star is shown
 };
 export type MealSearchResponse = {
     items: MealSearchResult[]; // at most LIMITS.pageSize (50)
@@ -34,23 +36,20 @@ export async function searchMeals(query: unknown): Promise<MealSearchResponse> {
 
     const db = await getRequestDb();
     const results = searchRecipes(db, { q, field: "name", pageSize: LIMITS.pageSize });
-
-    // Only send what the search bar shows. Recipes from different authors can
-    // share a name, so the id (unique) is the React key and the author tells them apart.
-    return {
-        items: results.items.map((recipe) => ({
-            id: recipe.id,
-            name: recipe.name,
-            author: recipe.author.username,
-            imageUrl: recipe.imageUrl,
-        })),
-        total: results.total,
-    };
+    return toResponse(db, results);
 }
 
 export async function getAllMeals(): Promise<MealSearchResponse> {
     const db = await getRequestDb();
-    const results = await searchRecipes(db);
+    const results = searchRecipes(db);
+    return toResponse(db, results);
+}
+
+// Only send what the search bar shows. Recipes from different authors can
+// share a name, so the id (unique) is the React key and the author tells them apart.
+async function toResponse(db: DB, results: SearchResult): Promise<MealSearchResponse> {
+    const user = await getCurrentUser();
+    const favorites = user ? getFavoriteIds(db, user.id) : null;
 
     return {
         items: results.items.map((recipe) => ({
@@ -58,6 +57,7 @@ export async function getAllMeals(): Promise<MealSearchResponse> {
             name: recipe.name,
             author: recipe.author.username,
             imageUrl: recipe.imageUrl,
+            favorited: favorites ? favorites.has(recipe.id) : null,
         })),
         total: results.total,
     };

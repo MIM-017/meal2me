@@ -8,6 +8,7 @@ export * from "./errors";
 export * from "./recipes";
 export * from "./users";
 export * from "./sessions";
+export * from "./favorites";
 export {
   DIFFICULTIES,
   LIMITS,

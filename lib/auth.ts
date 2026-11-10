@@ -23,7 +23,7 @@ export async function startSession(userId: number): Promise<void> {
   const { token, expiresAt } = createSession(db, userId);
   jar.set(SESSION_COOKIE, token, {
     httpOnly: true, // page JavaScript can't read it (limits XSS damage)
-    secure: process.env.NODE_ENV === "production", // HTTPS only once deployed
+          secure: process.env.NODE_ENV === "production", // HTTPS only once deployed
     sameSite: "lax", // not sent on cross-site POSTs (CSRF)
     path: "/",
     expires: expiresAt,

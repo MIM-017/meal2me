@@ -185,6 +185,24 @@ export const MIGRATIONS: readonly Migration[] = [
       CREATE INDEX idx_sessions_expires_at ON sessions (expires_at);
     `,
   },
+    {
+    // Favorites: which user starred which recipe. One row per (user, recipe),
+    // so favoriting twice is a no-op. Deleting the user or the recipe removes
+    // the favorite with it.
+    version: 5,
+    sql: `
+      CREATE TABLE favorites (
+        user_id    INTEGER NOT NULL REFERENCES users (id)   ON DELETE CASCADE,
+        recipe_id  INTEGER NOT NULL REFERENCES recipes (id) ON DELETE CASCADE,
+        created_at TEXT    NOT NULL DEFAULT ${NOW},
+        PRIMARY KEY (user_id, recipe_id)
+      ) STRICT, WITHOUT ROWID;
+
+      -- The primary key covers "this user's favorites"; this one makes the
+      -- ON DELETE CASCADE from recipes fast.
+      CREATE INDEX idx_favorites_recipe_id ON favorites (recipe_id);
+    `,
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

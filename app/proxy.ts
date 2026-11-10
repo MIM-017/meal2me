@@ -20,5 +20,5 @@ export function proxy(request: NextRequest) {
  
 export const config = {
   // Pages that need a logged-in user. Everything else stays public.
-  matcher: ["/add/:path*"],
+    matcher: ["/add/:path*", "/favorites/:path*"],
 };
