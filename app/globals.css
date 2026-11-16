@@ -1,12 +1,13 @@
 :root {
-  --bg: #fbf6ec;
-  --paper: #ffffff;
-  --ink: #2a2118;
-  --muted: #6b5a4a;
-  --line: #eadfca;
-  --accent: #d6402b;
+  --bg: #f5ead7;          /* oat cream, page background */
+  --paper: #fffdf8;       /* near-white cards and inputs, so they pop off the page */
+  --ink: #2e2118;         /* espresso, body text */
+  --muted: #6f5d4d;
+  --line: #e0cfb3;
+  --accent: #d9622b;      /* pumpkin orange, buttons and links */
   --accent-ink: #ffffff;
-  --text-header: #2f5d3a;
+  --accent-2: #e8b04a;    /* honey gold, highlights */
+  --text-header: #4a2f1d; /* dark brown, headings and nav */
 }
 
 html,
@@ -39,7 +40,7 @@ a {
   align-items: center;
   gap: 16px;
   padding-bottom: 8px;
-  border-bottom: 3px solid var(--accent);
+  border-bottom: 3px solid var(--accent-2);
   margin-bottom: 16px;
 }
 
@@ -99,7 +100,7 @@ select {
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: #fff;
+  background: var(--paper);
 }
 
 .actions {
@@ -144,7 +145,11 @@ button.secondary {
 
 .meal-card {
   position: relative; /* anchors the favorite star in the top-right corner */
-  border-radius: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(60, 40, 20, 0.08);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -154,6 +159,8 @@ button.secondary {
 }
 
 .meal-card img {
+  display: block;
+  width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--paper);
@@ -208,14 +215,14 @@ button.secondary {
 .search::after {
   content: "";
   flex: 0 1 150px;
-  border-top: 2px solid var(--text-header);
+  border-top: 2px solid var(--accent-2);
 }
 
 .search input {
   flex: 1;
   min-width: 0;
   padding: 10px 24px;
-  border: 2px solid var(--text-header);
+  border: 2px solid var(--accent-2);
   border-radius: 999px;
   font-size: 1.1rem;
 }
@@ -275,13 +282,18 @@ button.secondary {
 }
 
 input[type="file"] {
-  color: transparent;
+  color: var(--ink);   /* shows the file name */
 }
 
 input[type="file"]::file-selector-button {
-  color: var(--ink);
   font: inherit;
   cursor: pointer;
+  color: var(--ink);
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 6px 12px;
+  margin-right: 10px;
 }
 
 .file-button {
@@ -294,8 +306,17 @@ input[type="file"]::file-selector-button {
   cursor: pointer;
 }
 
+input[type="file"]::file-selector-button:hover {
+  filter: brightness(1.15);
+}
+
 .file-button:hover {
   background: #e0e0e0;
+}
+
+::placeholder {
+  color: var(--muted);
+  opacity: 0.8;
 }
 
 /* ---- Add meal: ingredients + instructions ---- */
@@ -306,7 +327,7 @@ textarea {
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: #fff;
+  background: var(--paper);
   resize: vertical;
 }
 
@@ -520,8 +541,8 @@ textarea {
 /* On a card: pinned to the top-right corner, over the photo. */
 .meal-card .favorite-button {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 20px;
+  right: 20px;
   z-index: 1;
 }
 
