@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getRecipe, getRequestDb, isFavorite, NotFoundError, ValidationError, type Recipe } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { FavoriteButton } from "@/components/favorite-button";
+import { DeleteButton } from "@/components/delete-button";
 
 /** "1. Boil water" / "Step 2: Drain" -> "Boil water" / "Drain", since the <ol> numbers them. */
 function toSteps(instructions: string): string[] {
@@ -12,6 +13,7 @@ function toSteps(instructions: string): string[] {
     .map((line) => line.replace(/^\s*(step\s*)?\d+\s*[.):-]\s*/i, "").trim())
     .filter((line) => line !== "");
 }
+
 
 async function RecipeContent({ params }: { params: PageProps<"/recipes/[id]">["params"] }) {
   const { id } = await params;
@@ -37,6 +39,7 @@ async function RecipeContent({ params }: { params: PageProps<"/recipes/[id]">["p
           <h1>{recipe.name}</h1>
           <p className="recipe-author">by {recipe.author.username}</p>
         </div>
+        {user?.id === recipe.author.id && <DeleteButton recipeId={recipe.id} imageUrl={recipe.imageUrl}/>}
         {user && <FavoriteButton recipeId={recipe.id} initialFavorited={isFavorite(db, user.id, recipe.id)} />}
       </header>
 
