@@ -39,8 +39,10 @@ async function RecipeContent({ params }: { params: PageProps<"/recipes/[id]">["p
           <h1>{recipe.name}</h1>
           <p className="recipe-author">by {recipe.author.username}</p>
         </div>
-        {user?.id === recipe.author.id && <DeleteButton recipeId={recipe.id} imageUrl={recipe.imageUrl}/>}
-        {user && <FavoriteButton recipeId={recipe.id} initialFavorited={isFavorite(db, user.id, recipe.id)} />}
+        <div style={{gap: 10, display: "flex"}}>
+          {user?.id === recipe.author.id && <DeleteButton recipeId={recipe.id} imageUrl={recipe.imageUrl}/>}
+          {user && <FavoriteButton recipeId={recipe.id} initialFavorited={isFavorite(db, user.id, recipe.id)} />}
+        </div>
       </header>
 
       {recipe.imageUrl && (
