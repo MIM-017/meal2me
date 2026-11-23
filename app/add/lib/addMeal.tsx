@@ -123,6 +123,8 @@ export async function addMealSystem(
         ingredients,
         notes: instructions, // stored in the recipes.notes column
         imageUrl,
+        sourceName: formData.get("sourceName")?.toString().trim() || null,
+        sourceUrl: formData.get("sourceUrl")?.toString().trim() || null,
     };
 
     try {

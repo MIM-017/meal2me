@@ -203,6 +203,16 @@ export const MIGRATIONS: readonly Migration[] = [
       CREATE INDEX idx_favorites_recipe_id ON favorites (recipe_id);
     `,
   },
+  {
+    // Optional attribution for recipes imported or adapted from a source.
+    version: 6,
+    sql: `
+      ALTER TABLE recipes ADD COLUMN source_name TEXT
+        CHECK (source_name IS NULL OR (source_name = trim(source_name) AND length(source_name) BETWEEN 1 AND 200));
+      ALTER TABLE recipes ADD COLUMN source_url TEXT
+        CHECK (source_url IS NULL OR (length(source_url) BETWEEN 9 AND 2000 AND source_url GLOB 'https://*'));
+    `,
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

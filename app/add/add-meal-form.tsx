@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useRef, useState, useActionState } from "react";
 import type { Difficulty } from "@/lib/db";
 import { addMealSystem, type AddMealState } from "./lib/addMeal";
 
@@ -12,6 +12,8 @@ export function AddMealForm() {
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [ingredients, setIngredients] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [imageName, setImageName] = useState("");
+  const imageInput = useRef<HTMLInputElement>(null);
   const [state, formAction, pending] = useActionState<AddMealState, FormData>(addMealSystem, null);
 
   return (
@@ -19,7 +21,7 @@ export function AddMealForm() {
       <h2>Add a meal</h2>
       <form action={formAction}>
         {state?.error && <p style={{ color: "#b00020" }}>{state.error}</p>}
-        <div className="filters">
+        <div className="meal-form-fields">
           <label>
             Name
             <input name="name" required value={name} onChange={(e) => setName(e.target.value)} />
@@ -52,9 +54,48 @@ export function AddMealForm() {
               <option value="hard">Hard</option>
             </select>
           </label>
+          <div className="photo-field">
+            <label htmlFor="meal-image">Photo (optional)</label>
+            <input
+              ref={imageInput}
+              id="meal-image"
+              className="visually-hidden"
+              name="image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              tabIndex={-1}
+              onChange={(event) => setImageName(event.currentTarget.files?.[0]?.name ?? "")}
+            />
+            <div className="photo-picker" aria-live="polite">
+              {imageName ? (
+                <>
+                  <span className="photo-file-name" title={imageName}>{imageName}</span>
+                  <button
+                    className="photo-clear"
+                    type="button"
+                    aria-label={`Remove ${imageName}`}
+                    onClick={() => {
+                      if (imageInput.current) imageInput.current.value = "";
+                      setImageName("");
+                    }}
+                  >
+                    ×
+                  </button>
+                </>
+              ) : (
+                <button className="photo-choose" type="button" onClick={() => imageInput.current?.click()}>
+                  Choose image
+                </button>
+              )}
+            </div>
+          </div>
           <label>
-            Photo (optional)
-            <input name="image" type="file" accept="image/jpeg,image/png,image/webp" />
+            Source name (optional)
+            <input name="sourceName" maxLength={200} placeholder="TheMealDB" />
+          </label>
+          <label>
+            Source link (optional, HTTPS)
+            <input name="sourceUrl" type="url" pattern="https://.*" placeholder="https://…" />
           </label>
         </div>
                 <div className="recipe-fields">

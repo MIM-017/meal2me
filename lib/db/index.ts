@@ -3,6 +3,7 @@
 // never from a file marked "use client".
 
 export { getDb, openDatabase, migrate, type DB } from "./client";
+export { MIGRATIONS, LATEST_SCHEMA_VERSION, type Migration } from "./schema";
 export { getRequestDb } from "./request";
 export * from "./errors";
 export * from "./recipes";

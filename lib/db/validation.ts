@@ -49,6 +49,8 @@ export interface RecipeInput {
   notes: string | null;
   macros: Macros | null;
   imageUrl: string | null;
+  sourceName: string | null;
+  sourceUrl: string | null;
 }
 
 export interface SearchOptions {
@@ -140,7 +142,7 @@ function rejectUnknownKeys(
 // Recipes
 // ---------------------------------------------------------------------------
 
-const RECIPE_KEYS = ["name", "ingredients", "cookTime", "difficulty", "cost", "notes", "macros", "imageUrl"] as const;
+const RECIPE_KEYS = ["name", "ingredients", "cookTime", "difficulty", "cost", "notes", "macros", "imageUrl", "sourceName", "sourceUrl"] as const;
 const MACRO_KEYS = ["calories", "protein", "carbs"] as const;
 
 function parseIngredients(value: unknown, issues: Issue[]): string[] | undefined {
@@ -251,6 +253,7 @@ function parseMacros(value: unknown, issues: Issue[]): Macros | null | undefined
 
 function parseImageUrl(value: unknown, issues: Issue[]): string | null | undefined {
   if (value === undefined || value === null || value === "") return null;
+  if (typeof value === "string" && value.length <= 500 && /^https:\/\/[^\s]+$/.test(value)) return value;
   if (
     typeof value !== "string" ||
     value.length > 500 ||
@@ -279,6 +282,8 @@ export function parseRecipeInput(data: unknown): RecipeInput {
     notes: parseNotes(data.notes, issues),
     macros: parseMacros(data.macros, issues),
     imageUrl: parseImageUrl(data.imageUrl, issues), 
+    sourceName: data.sourceName == null || data.sourceName === "" ? null : singleLine(data.sourceName, "sourceName", 200, issues),
+    sourceUrl: data.sourceUrl == null || data.sourceUrl === "" ? null : (typeof data.sourceUrl === "string" && /^https:\/\//.test(data.sourceUrl.trim()) && data.sourceUrl.trim().length <= 2000 ? data.sourceUrl.trim() : (issues.push({ field: "sourceUrl", message: "must be an https:// URL" }), undefined)),
   };
   if (issues.length > 0) throw new ValidationError(issues);
   return result as RecipeInput;

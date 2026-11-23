@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { getDb, type DB } from "./client";
+import { ensureCuratedRecipes } from "./curated";
 
 /**
  * Use this, not getDb(), in route handlers, server actions and server components.
@@ -16,5 +17,7 @@ import { getDb, type DB } from "./client";
  */
 export async function getRequestDb(): Promise<DB> {
   await connection();
-  return getDb();
+  const db = getDb();
+  ensureCuratedRecipes(db);
+  return db;
 }

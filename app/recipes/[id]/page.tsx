@@ -9,8 +9,12 @@ import { DeleteButton } from "@/components/delete-button";
 /** "1. Boil water" / "Step 2: Drain" -> "Boil water" / "Drain", since the <ol> numbers them. */
 function toSteps(instructions: string): string[] {
   return instructions
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
     .split("\n")
-    .map((line) => line.replace(/^\s*(step\s*)?\d+\s*[.):-]\s*/i, "").trim())
+    .map((line) => line
+      .replace(/^\s*(?:(?:step|part)\s*#?\s*)?\d+\s*[.):-]\s*/i, "")
+      .replace(/^\s*(?:step|part)\s*#?\s*\d+\s*[:.)-]?\s*$/i, "")
+      .trim())
     .filter((line) => line !== "");
 }
 
@@ -29,6 +33,7 @@ async function RecipeContent({ params }: { params: PageProps<"/recipes/[id]">["p
   }
 
   const m = recipe.macros;
+  const isEstimated = recipe.sourceName === "TheMealDB";
   const steps = recipe.notes ? toSteps(recipe.notes) : [];
   const user = await getCurrentUser();
 
@@ -40,22 +45,28 @@ async function RecipeContent({ params }: { params: PageProps<"/recipes/[id]">["p
           <p className="recipe-author">by {recipe.author.username}</p>
         </div>
         <div style={{gap: 10, display: "flex"}}>
-          {user?.id === recipe.author.id && <DeleteButton recipeId={recipe.id} imageUrl={recipe.imageUrl}/>}
+          {user?.id === recipe.author.id && <DeleteButton recipeId={recipe.id}/>}
           {user && <FavoriteButton recipeId={recipe.id} initialFavorited={isFavorite(db, user.id, recipe.id)} />}
         </div>
       </header>
+
+      {(recipe.sourceName || recipe.sourceUrl) && <p className="recipe-source">Source: {recipe.sourceUrl
+        ? <a href={recipe.sourceUrl} target="_blank" rel="noreferrer">{recipe.sourceName || recipe.sourceUrl}</a>
+        : recipe.sourceName}</p>}
 
       {recipe.imageUrl && (
         <Image className="recipe-image" src={recipe.imageUrl} alt={recipe.name} width={760} height={507} />
       )}
 
+      {isEstimated && <p className="estimate-note">Cost and cook time are estimates for a typical U.S. grocery shop and the listed quantities. Actual prices and times vary.</p>}
+
       <dl className="recipe-stats">
         <div><dt>Calories</dt><dd>{m?.calories ?? "—"}</dd></div>
         <div><dt>Protein</dt><dd>{m?.protein != null ? `${m.protein} g` : "—"}</dd></div>
         <div><dt>Carbs</dt><dd>{m?.carbs != null ? `${m.carbs} g` : "—"}</dd></div>
-        <div><dt>Cost</dt><dd>${recipe.cost.toFixed(2)}</dd></div>
-        <div><dt>Cook time</dt><dd>{recipe.cookTime} min</dd></div>
-        <div><dt>Difficulty</dt><dd>{recipe.difficulty}</dd></div>
+        <div><dt>{isEstimated ? "Est. recipe cost" : "Cost"}</dt><dd>${recipe.cost.toFixed(2)}</dd></div>
+        <div><dt>{isEstimated ? "Est. cook time" : "Cook time"}</dt><dd>{recipe.cookTime} min</dd></div>
+        <div><dt>{isEstimated ? "Est. difficulty" : "Difficulty"}</dt><dd>{recipe.difficulty}</dd></div>
       </dl>
 
       <section className="recipe-section">
