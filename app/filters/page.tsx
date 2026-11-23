@@ -42,7 +42,10 @@ async function FilterContent({ searchParams }: { searchParams: Params }) {
     <>
       <section className="panel">
         <h2>Filters</h2>
-        <form method="get">
+            {/* key: the inputs use defaultValue, which React only applies when the form is first
+            created. Navigating here again with different filters (e.g. the home page quick
+            picks) reuses this page, so remount the form whenever the filters change. */}
+        <form method="get" key={KEYS.map((k) => values[k]).join("|")}>
           <div className="filters">
             <label>Ingredient
               <input name="ingredient" defaultValue={values.ingredient} placeholder="e.g. garlic" />

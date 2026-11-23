@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import "@fontsource-variable/fraunces/soft.css";
+import "@fontsource-variable/fraunces/soft-italic.css";
+import "@fontsource-variable/nunito/index.css";
 import "./globals.css";
 import "./theme.css";
 import Image from "next/image";
@@ -23,23 +26,35 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body>
-        <div className="shell">
-          <header className="site-header">
+        <header className="site-header">
+          <div className="header-inner">
+            <Link href="/" className="brand">
+              <span className="logo-badge">
+                <Image src="/logo.png" alt="" width={40} height={40} />
+              </span>
+              <span className="site-logo">Meal2Me</span>
+            </Link>
             <nav className="site-navigation">
-              <Image src="/logo.png" alt="Meal2Me" width={60} height={60} />
-              <Link href="/" className="site-logo">Meal2Me</Link>
               <Link href="/add">Add meal</Link>
               <Link href="/filters">Filters</Link>
               <Link href="/meals">All Recipes</Link>
-              <ThemeToggle />
+              <Link href="/favorites" className="favorites-link">★ Favorites</Link>
             </nav>
-            {/* Reads the session cookie, so it streams in; the rest of the page doesn't wait. */}
-                        <Suspense fallback={<div className="auth-status" aria-hidden="true" />}>
-              <AuthStatus />
-            </Suspense>
-            <Link href="/favorites" className="favorites-link">★ Favorites</Link>
-          </header>
+            <div className="header-actions">
+              {/* Reads the session cookie, so it streams in; the rest of the page doesn't wait. */}
+              <Suspense fallback={<div className="auth-status" aria-hidden="true" />}>
+                <AuthStatus />
+              </Suspense>
+              <ThemeToggle />
+            </div>
+          </div>
+        </header>
+        <div className="shell">
           {children}
+          <footer className="site-footer">
+            <strong>Meal2Me</strong>
+            <span>Made for home cooks · Happy cooking! 🍲</span>
+          </footer>
         </div>
       </body>
     </html>

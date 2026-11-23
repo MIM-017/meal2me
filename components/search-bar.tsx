@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { searchMeals, getAllMeals, type MealSearchResponse } from "@/app/lib/searchMeals";
 import MealList from "./meals-list";
 import { redirect, RedirectType } from "next/navigation";
@@ -19,7 +19,12 @@ let latestSearch = 0;
 // The search waiting for the user to stop typing.
 let typingTimer: ReturnType<typeof setTimeout> | undefined;
 
-export function SearchBar() {
+/**
+ * The home page's hero (intro text + search box + Surprise me!) and the
+ * results grid under it. They share the search state, so they live together;
+ * the static parts are passed in from app/page.tsx.
+ */
+export function SearchBar({ intro, art, quickPicks }: { intro?: ReactNode; art?: ReactNode; quickPicks?: ReactNode }) {
   const [query, setQuery] = useState("");
   // null = nothing searched yet, so nothing is shown.
   const [results, setResults] = useState<MealSearchResponse | null>(null);
@@ -98,46 +103,61 @@ export function SearchBar() {
   }
 
   return (
-    <div style={{display: "flex", alignItems: "center", flexDirection: "column"}}>
-      <form role="search" className="search" onSubmit={handleSubmit} style={{width: "100%"}}>
-        <label htmlFor="recipe-search" className="visually-hidden">
-          Search recipes by name
-        </label>
-        <input
-          id="recipe-search"
-          name="q"
-          type="search"
-          placeholder="Search..."
-          autoComplete="off"
-          maxLength={MAX_QUERY_LENGTH}
-          value={query}
-          onChange={(event) => handleChange(event.target.value)}
-        />
-      </form>
+        <>
+      <section className="hero">
+        <div className="hero-text">
+          {intro}
+          <div className="search-row">
+            <form role="search" className="search" onSubmit={handleSubmit}>
+              <label htmlFor="recipe-search" className="visually-hidden">
+                Search recipes by name
+              </label>
+              <span className="search-icon" aria-hidden="true">🔍</span>
+              <input
+                id="recipe-search"
+                name="q"
+                type="search"
+                placeholder="Search recipes, e.g. overnight oats…"
+                autoComplete="off"
+                maxLength={MAX_QUERY_LENGTH}
+                value={query}
+                onChange={(event) => handleChange(event.target.value)}
+              />
+            </form>
+            <button type="button" className="surprise-button" onClick={() => navigateToRandomMeal()}>Surprise me!</button>
+          </div>
+        </div>
+        {art}
+      </section>
 
-      <button style={{width: "30%", marginTop: 24}} onClick={() => navigateToRandomMeal()}>Surprise me!</button>
+      {quickPicks}
 
-      <p className="home-hint">Click on any meal to learn more information</p>
+      <section aria-labelledby="results-heading">
+        <div className="section-head">
+          <h2 id="results-heading">{defaultFill ? "Fresh from the kitchen" : "Search results"}</h2>
+          <p className="home-hint">Click on any meal to learn more information</p>
+        </div>
 
-      <div role="status">
-        {failed && <p className="empty">Something went wrong. Please try again.</p>}
+        <div role="status">
+          {failed && <p className="empty">Something went wrong. Please try again.</p>}
 
-        {results && results.total === 0 && (
-          <p className="empty">No recipes found for &ldquo;{searchedFor}&rdquo;.</p>
-        )}
+          {results && results.total === 0 && (
+            <p className="empty">No recipes found for &ldquo;{searchedFor}&rdquo;.</p>
+          )}
 
-        {results && results.total > 0 && (
-          <>
-            <p className="empty">
-              {!defaultFill ? 
-              <>{results.total} {results.total === 1 ? "recipe" : "recipes"} found for &ldquo;{searchedFor}&rdquo;</>
-              : null}
-              {results.total > results.items.length && ` (showing the first ${results.items.length})`}
-            </p>
-            <MealList items={results.items}/>
-          </>
-        )}
-      </div>
-    </div>
+          {results && results.total > 0 && (
+            <>
+              <p className="empty">
+                {!defaultFill ? 
+                <>{results.total} {results.total === 1 ? "recipe" : "recipes"} found for &ldquo;{searchedFor}&rdquo;</>
+                : null}
+                {results.total > results.items.length && ` (showing the first ${results.items.length})`}
+              </p>
+              <MealList items={results.items}/>
+            </>
+          )}
+        </div>
+      </section>
+    </>
   );
 }

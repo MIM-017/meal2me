@@ -6,19 +6,26 @@ import { FavoriteButton } from "./favorite-button";
 export default function MealCard({ meal }: { meal: MealSearchResult}) {
 
     return (
-        <div className="meal-card">
+        <article className="meal-card">
             {meal.favorited !== null && (
                 <FavoriteButton recipeId={meal.id} initialFavorited={meal.favorited} />
             )}
             {meal.imageUrl ?
-            <Image src={meal.imageUrl} alt={meal.name + "image"}
+            <Image src={meal.imageUrl} alt={meal.name}
             width={600}
-            height={400}
-            style={{width: "100%", height: "auto", aspectRatio: 1.5, objectFit: "cover" }}/> : null}
+            height={450}/> : null}
 
-            <div className="meal-name">
-                <Link href={`/recipes/${meal.id}`}>{meal.name}</Link>
+            <div className="meal-card-body">
+                <h3 className="meal-name">
+                    <Link href={`/recipes/${meal.id}`}>{meal.name}</Link>
+                </h3>
+                <p className="meal-byline">by {meal.author}</p>
+                <ul className="meal-tags" aria-label="Recipe details">
+                    <li>⏱ {meal.cookTime} min</li>
+                    <li className="tag-herb">{meal.difficulty}</li>
+                    <li>${meal.cost.toFixed(2)}</li>
+                </ul>
             </div>
-        </div>
+        </article>
     );
 }

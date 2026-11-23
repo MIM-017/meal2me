@@ -35,15 +35,15 @@ const SLIDES: Slide[] = [
     text: "Browse every recipe on the site in one place.",
     match: ["all recipes"],
   },
+    {
+    title: "Favorites",
+    text: "Tap the star on any meal to save it, then find all your saved meals here.",
+    match: ["favorites"],
+  },
   {
     title: "Light / Dark theme",
     text: "Switch between the light and dark look of the site anytime.",
     match: ["light", "dark"],
-  },
-  {
-    title: "Favorites",
-    text: "Tap the star on any meal to save it, then find all your saved meals here.",
-    match: ["favorites"],
   },
   {
     title: "Search",
@@ -84,9 +84,12 @@ function readTheme(): Theme {
   return { bg, fg: body.color || "#ffffff" };
 }
 
-// Finds the name text under the first meal image
+// Finds the name text under the first visible meal card's image.
+// ".meal-card img", not "main img": the home page hero has photos too.
+// "Visible": Next keeps the previous page in the DOM (hidden) after navigating.
 function findMealName(): HTMLElement | null {
-  const img = document.querySelector<HTMLElement>("main img");
+  const img = Array.from(document.querySelectorAll<HTMLElement>(".meal-card img"))
+    .find((el) => el.getBoundingClientRect().width > 0);
   if (!img) return null;
   const imgRect = img.getBoundingClientRect();
 

@@ -9,6 +9,9 @@ export type MealSearchResult = {
     name: string;
     author: string;
     imageUrl: string | null; // e.g. /images/oatmeal.jpg, or null = no picture
+    cookTime: number;        // minutes
+    difficulty: "easy" | "medium" | "hard";
+    cost: number;            // dollars, whole recipe
     favorited: boolean | null; // null = not logged in, so no star is shown
 };
 export type MealSearchResponse = {
@@ -57,6 +60,9 @@ async function toResponse(db: DB, results: SearchResult): Promise<MealSearchResp
             name: recipe.name,
             author: recipe.author.username,
             imageUrl: recipe.imageUrl,
+            cookTime: recipe.cookTime,
+            difficulty: recipe.difficulty,
+            cost: recipe.cost,
             favorited: favorites ? favorites.has(recipe.id) : null,
         })),
         total: results.total,

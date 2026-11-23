@@ -1,57 +1,76 @@
-/* Dark palette: used when the OS is dark, unless the user picked light */
+/* Dark palette: warm cocoa browns instead of flat grey.
+   Used when the OS is dark (unless the user picked light), or when the user picked dark. */
 @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #1c1713;
-      --paper: #26201a;
-      --ink: #f1e8dc;
-      --muted: #b8a893;
-      --line: #3d332a;
-      --accent: #e07a3f;
-      --accent-ink: #1c1713;
-      --accent-2: #e8b04a;
-      --text-header: #f1e8dc;
-    }
-  }
-  
-  /* Dark palette: used when the user picked dark with the toggle */
-  :root[data-theme="dark"] {
-    --bg: #1c1713;
-    --paper: #26201a;
-    --ink: #f1e8dc;
-    --muted: #b8a893;
-    --line: #3d332a;
-    --accent: #e07a3f;
-    --accent-ink: #1c1713;
+  :root:not([data-theme="light"]) {
+    --bg: #1d1612;
+    --paper: #2a211b;
+    --ink: #f3e8da;
+    --muted: #bba791;
+    --line: #43352a;
+    --accent: #e9824a;
+    --accent-ink: #1d1612;
+    --accent-soft: #4a2c1c;
     --accent-2: #e8b04a;
-    --text-header: #f1e8dc;
+    --herb: #a9bb8a;
+    --herb-soft: #2f3324;
+    --text-header: #f7e9d6;
+    --shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-lift: 0 14px 30px rgba(0, 0, 0, 0.5);
+    --hero: linear-gradient(135deg, #3a261a 0%, #2b2019 55%, #33281a 100%);
+    --dots: rgba(232, 176, 74, 0.07);
   }
-  
-  /* Inputs have a hardcoded white background in globals.css */
-  :root[data-theme="dark"] input,
-  :root[data-theme="dark"] select {
-    background: var(--paper);
+}
+
+:root[data-theme="dark"] {
+  --bg: #1d1612;
+  --paper: #2a211b;
+  --ink: #f3e8da;
+  --muted: #bba791;
+  --line: #43352a;
+  --accent: #e9824a;
+  --accent-ink: #1d1612;
+  --accent-soft: #4a2c1c;
+  --accent-2: #e8b04a;
+  --herb: #a9bb8a;
+  --herb-soft: #2f3324;
+  --text-header: #f7e9d6;
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-lift: 0 14px 30px rgba(0, 0, 0, 0.5);
+  --hero: linear-gradient(135deg, #3a261a 0%, #2b2019 55%, #33281a 100%);
+  --dots: rgba(232, 176, 74, 0.07);
+}
+
+/* Error box: the light pink one glares on a dark page */
+:root[data-theme="dark"] .form-error {
+  background: #3a1d1d;
+  border-color: #7a3434;
+  color: #ffb4b4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .form-error {
+    background: #3a1d1d;
+    border-color: #7a3434;
+    color: #ffb4b4;
   }
-  
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) input,
-    :root:not([data-theme="light"]) select {
-      background: var(--paper);
-    }
-  }
-  
-  .theme-toggle {
-    background: transparent;
-    color: var(--ink);
-    border: 1px solid var(--line);
-  }
-  
-  /* Logo: flip the dark line drawing to light in dark mode */
-  :root[data-theme="dark"] .site-navigation img {
+}
+
+.theme-toggle {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  font-weight: 600;
+  padding: 9px 16px;
+  white-space: nowrap;
+}
+
+/* Logo: flip the dark line drawing to light in dark mode */
+:root[data-theme="dark"] .brand img {
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brand img {
     filter: invert(1);
   }
-  
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .site-navigation img {
-      filter: invert(1);
-    }
-  }
+}
