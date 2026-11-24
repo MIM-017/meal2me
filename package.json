@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "pull:themealdb": "node scripts/pull-themealdb.mjs",
+    "prepare:recipes": "node scripts/prepare-recipes.mjs",
+    "refresh:catalog": "node scripts/pull-themealdb.mjs 150 && node scripts/prepare-recipes.mjs",
+    "seed:recipes": "node scripts/seed-recipes.cjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

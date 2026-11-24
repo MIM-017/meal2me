@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import Database from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   ConflictError,
@@ -11,6 +12,7 @@ import {
   getRecipe,
   getUserByUsername,
   migrate,
+  LATEST_SCHEMA_VERSION,
   NotFoundError,
   openDatabase,
   parseSearchParams,
@@ -18,7 +20,9 @@ import {
   updateRecipe,
   ValidationError,
   type DB,
+  MIGRATIONS,
 } from "./index";
+import { ensureCuratedRecipes } from "./curated";
 
 let db: DB;
 let garf: number;
@@ -31,6 +35,15 @@ const pancakes = {
   difficulty: "easy",
   cost: 4.5,
 };
+
+function createTestUser(db: DB, username: unknown) {
+  const email = typeof username === "string" ? `${username.toLowerCase()}@example.test` : "invalid@example.test";
+  return createUser(db, {
+    username,
+    email,
+    passwordHash: "scrypt$test-password-hash",
+  });
+}
 
 /** Expect fn to throw a ValidationError mentioning `field`. */
 function expectInvalid(fn: () => unknown, field: string) {
@@ -49,18 +62,18 @@ const names = (opts: Parameters<typeof searchRecipes>[1]) =>
 
 beforeEach(() => {
   db = openDatabase(":memory:");
-  garf = createUser(db, "garf").id;
-  kaz = createUser(db, "kaz").id;
+  garf = createTestUser(db, "garf").id;
+  kaz = createTestUser(db, "kaz").id;
 });
 afterEach(() => db.close());
 
 describe("schema", () => {
   it("sets pragmas and version, and migrate() is repeatable", () => {
     expect(db.pragma("foreign_keys", { simple: true })).toBe(1);
-    expect(db.pragma("user_version", { simple: true })).toBe(1);
+    expect(db.pragma("user_version", { simple: true })).toBe(LATEST_SCHEMA_VERSION);
     migrate(db);
     migrate(db);
-    expect(db.pragma("user_version", { simple: true })).toBe(1);
+    expect(db.pragma("user_version", { simple: true })).toBe(LATEST_SCHEMA_VERSION);
   });
 
   it("refuses a database from newer code", () => {
@@ -74,7 +87,7 @@ describe("schema", () => {
     try {
       const a = openDatabase(file);
       expect(a.pragma("journal_mode", { simple: true })).toBe("wal");
-      const u = createUser(a, "author1");
+      const u = createTestUser(a, "author1");
       createRecipe(a, u.id, pancakes);
       a.close();
       const b = openDatabase(file);
@@ -84,17 +97,48 @@ describe("schema", () => {
       fs.rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("migration 6 adds attribution without rebuilding recipes or losing rows", () => {
+    const legacy = new Database(":memory:");
+    legacy.pragma("foreign_keys = ON");
+    for (const migration of MIGRATIONS.slice(0, 5)) {
+      legacy.exec(migration.sql);
+      legacy.pragma(`user_version = ${migration.version}`);
+    }
+    const author = createTestUser(legacy as DB, "legacy");
+    const recipe = legacy.prepare(
+      "INSERT INTO recipes (author_id, name, notes, cook_time_minutes, difficulty, cost_cents) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
+    ).get(author.id, pancakes.name, "Original instructions", pancakes.cookTime, pancakes.difficulty, 450) as { id: number };
+    legacy.prepare("INSERT INTO recipe_ingredients (recipe_id, position, ingredient) VALUES (?, 0, ?)").run(recipe.id, "1 cup flour");
+    migrate(legacy as DB);
+    expect(legacy.pragma("user_version", { simple: true })).toBe(LATEST_SCHEMA_VERSION);
+    expect(getRecipe(legacy as DB, recipe.id)).toMatchObject({ id: recipe.id, name: pancakes.name, notes: "Original instructions", ingredients: ["1 cup flour"], sourceName: null, sourceUrl: null });
+    legacy.close();
+  });
+});
+
+describe("startup curated catalog", () => {
+  it("loads the bundled catalog once, with values for cost/time/difficulty", () => {
+    ensureCuratedRecipes(db);
+    ensureCuratedRecipes(db);
+    const row = db.prepare(
+      `SELECT COUNT(*) AS count,
+              SUM(CASE WHEN cost_cents > 0 AND cook_time_minutes > 0 AND difficulty IN ('easy','medium','hard') THEN 1 ELSE 0 END) AS estimated
+       FROM recipes r JOIN users u ON u.id = r.author_id WHERE u.username = 'meal2me-curated'`,
+    ).get() as { count: number; estimated: number };
+    expect(row).toEqual({ count: 150, estimated: 150 });
+  });
 });
 
 describe("users", () => {
   it("usernames are unique case-insensitively", () => {
-    expect(() => createUser(db, "GARF")).toThrow(ConflictError);
+    expect(() => createTestUser(db, "GARF")).toThrow(ConflictError);
     expect(getUserByUsername(db, "Garf").id).toBe(garf);
   });
 
   it("rejects bad usernames", () => {
     for (const bad of ["ab", "has space", "x".repeat(31), "ta\tb", "née", 5, null]) {
-      expect(() => createUser(db, bad)).toThrow(ValidationError);
+      expect(() => createTestUser(db, bad)).toThrow(ValidationError);
     }
   });
 
@@ -113,6 +157,8 @@ describe("create / get", () => {
       cost: 0.1 + 0.2, // 0.30000000000000004 in floating point; must store as 30 cents
       notes: "Line one\r\nLine two  ",
       macros: { calories: 900, protein: 30.5, carbs: 120 },
+      sourceName: "TheMealDB",
+      sourceUrl: "https://www.themealdb.com/meal/52772",
     });
     expect(created).toMatchObject({
       name: "Pancakes",
@@ -123,6 +169,8 @@ describe("create / get", () => {
       notes: "Line one\nLine two",
       cost: 0.3,
       macros: { calories: 900, protein: 30.5, carbs: 120 },
+      sourceName: "TheMealDB",
+      sourceUrl: "https://www.themealdb.com/meal/52772",
     });
     expect(Number.isNaN(Date.parse(created.createdAt))).toBe(false);
     expect(getRecipe(db, created.id)).toEqual(created);
@@ -195,6 +243,8 @@ describe("create / get", () => {
     [{ macros: { fat: 10 } }, "macros.fat"],
     [{ macros: [1, 2] }, "macros"],
     [{ cooktime: 20 }, "cooktime"],
+    [{ sourceUrl: "http://example.com" }, "sourceUrl"],
+    [{ sourceUrl: "https://" + "x".repeat(2000) }, "sourceUrl"],
   ])("rejects %j", (override, field) => {
     expectInvalid(() => createRecipe(db, garf, { ...pancakes, ...override }), field);
   });

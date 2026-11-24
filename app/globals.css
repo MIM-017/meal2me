@@ -913,3 +913,23 @@ textarea {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+/* Local recipe form and catalog details */
+.meal-form-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.meal-form-fields > label,
+.photo-field > label { white-space: nowrap; }
+.photo-field { min-width: 0; }
+.photo-picker { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 42px; }
+.photo-choose { flex: 0 0 auto; }
+.photo-file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.photo-clear { flex: 0 0 34px; width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 1.25rem; line-height: 1; }
+.home-discovery .search { width: 100%; }
+.result-count { text-align: center; color: var(--muted); }
+.load-more { display: flex; justify-content: center; padding: 24px 0 8px; }
+.recipe-source { color: var(--muted); margin-top: -8px; }
+.estimate-note { color: var(--muted); font-size: .9rem; }

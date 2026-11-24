@@ -10,7 +10,7 @@ export type DeleteMealResult =
     { ok: true } |
     { ok: false; error: "login" | "invalid" | "ownership" | "not_found"}
 
-export async function deleteMeal(recipeId: unknown, imageUrl: unknown): Promise<DeleteMealResult> {
+export async function deleteMeal(recipeId: unknown): Promise<DeleteMealResult> {
 
     const user  = await getCurrentUser();
     const db = await getRequestDb();
@@ -18,9 +18,14 @@ export async function deleteMeal(recipeId: unknown, imageUrl: unknown): Promise<
 
     try {
         const meal = getRecipe(db, recipeId);
-        deleteRecipe(db, recipeId, meal.author.id);
+        deleteRecipe(db, recipeId, user.id);
 
-        if (typeof imageUrl === "string") await unlink(path.join(process.cwd(), "public", imageUrl)).catch(() => {});
+        const imageUrl = meal.imageUrl;
+        if (typeof imageUrl === "string" && imageUrl.startsWith("/images/uploads/")) {
+            const uploadRoot = path.resolve(process.cwd(), "public/images/uploads");
+            const imagePath = path.resolve(process.cwd(), "public", `.${imageUrl}`);
+            if (path.dirname(imagePath) === uploadRoot) await unlink(imagePath).catch(() => {});
+        }
     }
     catch (error) {
         if (error instanceof ForbiddenError) {

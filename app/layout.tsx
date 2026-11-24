@@ -41,7 +41,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/favorites" className="favorites-link">★ Favorites</Link>
             </nav>
             <div className="header-actions">
-              {/* Reads the session cookie, so it streams in; the rest of the page doesn't wait. */}
               <Suspense fallback={<div className="auth-status" aria-hidden="true" />}>
                 <AuthStatus />
               </Suspense>
@@ -54,6 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <footer className="site-footer">
             <strong>Meal2Me</strong>
             <span>Made for home cooks · Happy cooking! 🍲</span>
+            <span>Recipe data and artwork credited to <a href="https://www.themealdb.com/" target="_blank" rel="noreferrer">TheMealDB</a> where applicable.</span>
           </footer>
         </div>
       </body>

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { deleteMeal } from "@/app/recipes/actions";
 
 /** Only render it for a logged-in user. */
-export function DeleteButton({ recipeId, imageUrl }: { recipeId: number, imageUrl: string | null }) {
+export function DeleteButton({ recipeId }: { recipeId: number }) {
   const [, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
@@ -16,7 +16,7 @@ export function DeleteButton({ recipeId, imageUrl }: { recipeId: number, imageUr
 
     startTransition(async () => {
       try {
-        const result = await deleteMeal(recipeId, imageUrl);
+        const result = await deleteMeal(recipeId);
         if (result.ok) { router.replace("/meals"); return; }
         // Session expired since the page loaded: log in, then come back here.
         if (result.error === "login") router.push(`/login?next=${encodeURIComponent(pathname)}`);
